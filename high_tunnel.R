@@ -5,11 +5,34 @@
 # 
 
 
+
 library(Matrix) # for sparse matrices
 
-HighTunnelExptSimfunct_17Feb16 <- function(
-    xr,xs,yr,ys,a,fresist,k,kp,kk,h,sw,s1,s2,rho,sm,Tmax,nfield,kill,
-    harvesttimes,da,dw,pred) {
+
+# Equivalent to diag(v, k) in MATLAB
+diag_ml <- function(v, k = 0) {
+    k <- as.integer(k)
+    md <- diag(as.vector(v))
+    md2 <- matrix(0, nrow(md) + abs(k), ncol(md) + abs(k))
+    if (k > 0) {
+        md2[1:nrow(md), (k+1):ncol(md2)] <- md
+    } else if (k < 0) {
+        md2[(abs(k)+1):nrow(md2), 1:ncol(md)] <- md
+    } else {
+        md2 <- md
+    }
+    return(md2)
+}
+
+# Check if any numbers are actually complex (imaginary part is != 0)
+any_complex <- function(x) {
+    any(sapply(x, function(xx) !identical(Im(xx), 0)))
+}
+
+
+# HighTunnelExptSimfunct <- function(
+    # xr,xs,yr,ys,a,fresist,k,kp,kk,h,sw,s1,s2,rho,sm,Tmax,nfield,kill,
+    # harvesttimes,da,dw,pred) {
     
     # global totStage stageInts mumInts sj sa relatt sexratio Lr Ls clone
 
@@ -29,8 +52,10 @@ HighTunnelExptSimfunct_17Feb16 <- function(
     LLr <- Matrix(Lr, sparse = TRUE)
     LLs <- Matrix(Ls, sparse = TRUE)
     
-    for (t in 1:Tmax) {
-        for (i in 1:nfield) {
+    # for (t in 1:Tmax) {
+    t=1
+        # for (i in 1:nfield) {
+    i=1
             ypr <- yr[1:mumInts[1], i]
             ypr <- ypr[ypr>0]
             yps <- ys[1:mumInts[1], i]
@@ -41,40 +66,53 @@ HighTunnelExptSimfunct_17Feb16 <- function(
             Kpt <- 1 / (1 + kp * sxyt)
             
             
-            mm <- a * relatt[clone[1,1],] * (yr[end,i] + ys[end, i]) / (h * sxyt + 1)
+            mm <- rbind(a * relatt[clone[1,1],] * (yr[nrow(yr),i] + ys[nrow(ys),i]) / 
+                            (h * sxyt + 1))
             AA <- (1 + t(mm) / kk)
             As <- AA^(-kk)
             
-            mm <- a * relatt[clone[2,1],] * (yr[end,i] + ys[end,i]) / (h * sxyt + 1)
+            mm <- rbind(a * relatt[clone[2,1],] * (yr[nrow(yr),i] + ys[nrow(ys),i]) / 
+                            (h * sxyt + 1))
             AA <- (1 + t(mm) / kk)
-            Ar <- AA^(-kk) + fresist[1] * t(mm) * AA^(-kk-1) + fresist[2] * 
+            Ar <- AA^(-kk) + fresist[1] * t(mm) * AA^(-kk-1) + fresist[2] *
                 (1-(AA^(-kk) + t(mm) * AA^(-kk-1)))
             
-            xtr <- pred * Kt * Ar * (LLr * xr[,i])
-            xts <- pred * Kt * As * (LLs * xs[,i])
+            xtr <- (pred * Kt * Ar) * as.matrix(LLr %*% xr[,i])
+            xts <- (pred * Kt * As) * as.matrix(LLs %*% xs[,i])
             
             yt <- yr[,i]
             y <- yr[,i]
             x <- xr[,i]
-            yt[end] <- sw * y[end] + sexratio * y[end-1]
-            yt[(mumInts[1]+2):(end-1)] <- pred * y[(mumInts[1]+1):(end-2)]
+            yt[length(yt)] <- sw * y[length(y)] + sexratio * y[(length(y)-1)]
+            yt[(mumInts[1]+2):(length(yt)-1)] <- pred * y[(mumInts[1]+1):(length(y)-2)]
             yt[2:(mumInts[1]+1)] <- Kpt * sj[clone[1,1]] * y[1:mumInts[1]]
-            yt[1] <- Kpt * t(matrix(1,totStage,1) - Ar) * (LLr * x)
+            yt[1] <- (Kpt * t(matrix(1,totStage,1) - Ar)) %*% as.matrix(LLr %*% x)
             ytr <- yt
             
             yt <- ys[,i]
             y <- ys[,i]
             x <- xs[,i]
-            yt[end] <- sw * y[end] + sexratio * y[end-1]
-            yt[(mumInts[1]+2):(end-1)] <- pred * y[(mumInts[1]+1):(end-2)]
+            yt[length(yt)] <- sw * y[length(y)] + sexratio * y[(length(y)-1)]
+            yt[(mumInts[1]+2):(length(yt)-1)] <- pred * y[(mumInts[1]+1):(length(y)-2)]
             yt[2:(mumInts[1]+1)] <- Kpt * sj[clone[2,1]] * y[1:mumInts[1]]
-            yt[1] <- Kpt * t(matrix(1,totStage,1) - As) * (LLs * x)
+            yt[1] <- (Kpt * t(matrix(1,totStage,1) - As)) %*% as.matrix(LLs %*% x)
             yts <- yt
             
-            if (t %in% harvesttimes[i,1:(end-1)]) {
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # Left off on this part: He's using a matrix for the end of a sequence
+            # The behavior of this in matlab is to just end at the first element of 
+            # the matrix
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            if (t %in% harvesttimes[i,1:(ncol(harvesttimes)-1)]) {
                 xtr <- kill * xtr
                 ytr[1:mumInts] <- kill * ytr[1:mumInts]
-                ytr[(mumInts+1):(end-1)] <- 0
+                ytr[(mumInts+1):(length(ytr)-1)] <- 0
                 
                 xts <- kill * xts
                 yts[1:mumInts] <- kill * yts[1:mumInts]
@@ -85,10 +123,8 @@ HighTunnelExptSimfunct_17Feb16 <- function(
             xs[,i] <- xts
             yr[,i] <- ytr
             ys[,i] <- yts
-        }
-        
-        
-    }
+    #     }
+    # }
     
     dispersing <- da * t(mean(t(xr[(sum(stageInts[clone[1,1],1:4])+1):end,])))
     xr[(sum(stageInts[clone[1,1],1:4])+1):end,] <- (1-da) * 
@@ -108,15 +144,22 @@ HighTunnelExptSimfunct_17Feb16 <- function(
     
     nap <- nx + mumInts[1]
     
-    yy <- c(xr, yr)
+    yy <- cbind(xr, yr)
     Xr[t,] <- sum(yy[1:nap,]);
     Yr[t,] <- sum(yy[(nx+1):nap,]) / sum(yy[1:nap,])
     
-    yy <- c(xs, ys)
+    yy <- cbind(xs, ys)
     Xs[t,] <- sum(yy[1:nap,])
     Ys[t,] <- sum(yy[(nx+1):nap,]) / sum(yy[1:nap,])
 
-}
+    out_list <- list(Xr = Xr, Xs = Xs, Yr = Yr, Ys = Ys, xr = xr, xs = xs, 
+                     yr = yr, ys = ys)
+    
+    
+    
+    
+#     return(out_list)
+# }
 
 
 
@@ -127,7 +170,7 @@ HighTunnelExptSimfunct_17Feb16 <- function(
 
 
 
-
+# Here I started turning every * (not .*) to matrix multiplication %*%
 
 # global totStage stageInts mumInts sj sa relatt sexratio Lr Ls clone
 
@@ -143,7 +186,7 @@ HighTunnelExptSimfunct_17Feb16 <- function(
 # % rows: 1=resistant, susceptible = 2
 # % columns: 1=aphid juv, 2=aphid adult
 # % values 1=low growth rate, 2=high growth rate
-clone <- matrix(c(2, 1, 2, 2), 2, 2, byrow = TRUE)
+clone <- rbind(c(2, 1), c(2, 2))
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # % lab parameters
@@ -152,20 +195,19 @@ totStage <- 32
 
 # % this sets the time scale in terms of the numbers of days per instar and
 # % mummy development time
-stageInts <- matrix(c(2, 2, 2, 2, 19,
-                      1, 1, 1, 2, 23), 2, 5, byrow = TRUE)
-mumInts <- c(7, 3)
+stageInts <- rbind(c(2, 2, 2, 2, 19), c(1, 1, 1, 2, 23))
+mumInts <- cbind(7, 3)
 
 # % juvenile survival
-sj <- c(0.9745, 0.9849)
+sj <- cbind(0.9745, 0.9849)
 
 # % adult survival
-sa=rbind(c(1.0000, 0.9949, 0.9818, 0.9534, 0.8805, 0.8367, 0.8532, 0.8786, 0.8823, 
-           0.8748, 0.8636, 0.8394, 0.8118, 0.8096, 0.8240, 0.8333, 0.7544, 0.5859, 
-           0.4155, 0.2216),
-         c(1.0000, 0.9986, 0.9951, 0.9874, 0.9675, 0.9552, 0.9550, 0.9549, 0.9462, 
-           0.8992, 0.8571, 0.8408, 0.8281, 0.8062, 0.7699, 0.7500, 0.7559, 0.7649, 
-           0.7240, 0.4367))
+sa <- rbind(c(1.0000, 0.9949, 0.9818, 0.9534, 0.8805, 0.8367, 0.8532, 0.8786, 0.8823, 
+              0.8748, 0.8636, 0.8394, 0.8118, 0.8096, 0.8240, 0.8333, 0.7544, 0.5859, 
+              0.4155, 0.2216),
+            c(1.0000, 0.9986, 0.9951, 0.9874, 0.9675, 0.9552, 0.9550, 0.9549, 0.9462, 
+              0.8992, 0.8571, 0.8408, 0.8281, 0.8062, 0.7699, 0.7500, 0.7559, 0.7649, 
+              0.7240, 0.4367))
 sa <- cbind(sa, matrix(0,2,180))
 
 # % reproduction
@@ -182,14 +224,14 @@ repro <- cbind(repro, matrix(0,2,178))
 
 # % relative attack rate on the different instars
 # % from Ives et al 1999
-relatt_by_instar <- c(0.12, 0.27, 0.39, 0.16, 0.06)
+relatt_by_instar <- cbind(0.12, 0.27, 0.39, 0.16, 0.06)
 
 # % putting in the attack rates for different development rates
 relattemp <- matrix(0,2,totStage)
 for (j in 1:2) {
     counter <- 0
     for (i in 1:5) {
-        relattemp[j,(counter+1):(counter+stageInts[j,i])] <- relatt_by_instar[i] * 
+        relattemp[j,(counter+1):(counter+stageInts[j,i])] <- relatt_by_instar[i] %*% 
             matrix(1,1,stageInts[j,i])
         counter <- counter + stageInts[j,i]
     }
@@ -215,19 +257,114 @@ sm <- 33.5455
 
 # % These are the survivals of singly attacked and multiply attacked
 # % resistant aphids
-fresist <- c(0.9, 0.6)
+fresist <- cbind(0.9, 0.6)
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # % set up Leslie matrices
 
 # % resistant clones
 L <- matrix(0,totStage,totStage)
-juvTime <- sum(stageInts[clone[1,1],1:(end-1)])
-# WHAT DOES -1 BELOW DO??
-LL <- diag(c(sj[clone[1,1]] * matrix(1,1,juvTime), 
-             sa[clone[1,2], 1:(totStage-juvTime-1)]), -1)
-LL[1,(juvTime+1):(juvTime+stageInts[clone[1,1],end])] <- 
-    repro[clone[1,2],1:(stageInts[clone[1,1],end])]
+juvTime <- sum(stageInts[clone[1,1],1:(ncol(stageInts)-1)])
+LL <- diag_ml(c(sj[,clone[1,1]] * matrix(1,1,juvTime), 
+                sa[clone[1,2], 1:(totStage-juvTime-1)]), -1)
+LL[1,(juvTime+1):(juvTime+stageInts[clone[1,1],ncol(stageInts)])] <- 
+    repro[clone[1,2],1:(stageInts[clone[1,1],ncol(stageInts)])]
 L <- LL
 
-# Left off on line 87 of HighTunnelExptSim_14Aug17.m
+
+
+L_eigen <- eigen(L)
+SAD <- L_eigen$vectors
+r <- matrix(L_eigen$values, ncol = 1)
+rmax <- max(abs(r))
+Rr <- rmax
+
+SADdist <- SAD[, abs(r) == rmax]
+SADdist <- SADdist / sum(SADdist)
+Lr <- L
+if (!any_complex(SADdist)) SADdist <- as.numeric(SADdist)
+SADdistr <- matrix(SADdist, ncol = 1)
+
+# % susceptible clones
+L <- matrix(0,totStage,totStage)
+juvTime <- sum(stageInts[clone[2,1],1:(ncol(stageInts)-1)])
+LL <- diag_ml(c(sj[clone[2,1]] %*% matrix(1,1,juvTime), 
+                sa[clone[2,2],1:(totStage-juvTime-1)]), -1)
+LL[1,(juvTime+1):(juvTime+stageInts[clone[2,1],ncol(stageInts)])] <- 
+    repro[clone[2,2], 1:stageInts[clone[2,1],ncol(stageInts)]]
+L <- LL
+
+L_eigen <- eigen(L)
+SAD <- L_eigen$vectors
+r <- L_eigen$values
+rmax <- max(abs(r))
+Rs <- rmax
+
+
+SADdist <- SAD[, abs(r) == rmax]
+SADdist <- SADdist / sum(SADdist)
+if (!any_complex(SADdist)) SADdist <- as.numeric(SADdist)
+Ls <- L
+SADdists <- matrix(SADdist, ncol = 1)
+
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# % field parameters: This is set up to have different harvesting patterns
+# % between nfield fields.
+
+# % number of fields
+nfield <- 2
+
+# % kill rate at harvesting
+kill <- 0.05
+
+# % dispersal rates between fields for aphids, adult wasps, and predators
+da <- 0.05
+dw <- 1
+pred <- 0.8
+
+# % initial densities of aphids and parasitoids
+initx <- 20
+inity <- 1
+
+# % time between harvests
+cycles <- 20
+cyclelength <- 30
+fractresist <- 0.05
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# % run program
+
+xrinit <- fractresist * initx * SADdistr %*% matrix(1,1,nfield)
+xsinit <- (1-fractresist) * initx * SADdists %*% matrix(1,1,nfield)
+
+ny <- sum(mumInts) + 1
+yr <- 0 * xrinit[1:(ny-1),]
+yr <- inity * rbind(yr, c(1, 1))
+ys <- 0 * xsinit[1:(ny-1),]
+ys <- inity * rbind(ys, c(1, 1))
+
+
+Tmax <- cyclelength * (1 + cycles)
+harvesttimes <- rbind(c(cyclelength * (1:1), cyclelength * (2:cycles)),
+                      c(cyclelength * (1:1), cyclelength * (2:(cycles-1)) - cyclelength/2,
+                        cyclelength * cycles))
+
+xs <- xsinit
+xr <- xrinit
+# out_list <- HighTunnelExptSimfunct(xr,xs,yr,ys,a,fresist,k,kp,kk,h,sw,s1,s2,rho,sm,Tmax,nfield,kill,harvesttimes,da,dw,pred)
+# Assigning out_list values to global ones for objects Xr, Xs, Yr, Ys, xr, xs, yr, & ys
+invisible(
+    lapply(names(out_list), 
+           function(NAME) {
+               eval(parse(text = paste0(NAME, ' <<- out_list$', NAME)))
+           }))
+
+
+Ymax <- 1.2 * max(max(Xr+Xs))
+Ymax2 <- 1.2 * max(max(Xr+Xs))
+range <- c(0, Tmax, 0, Ymax)
+
+
+Tmin <- 1
