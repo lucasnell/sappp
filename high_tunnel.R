@@ -6,6 +6,10 @@
 
 
 
+
+
+
+
 library(Matrix) # for sparse matrices
 
 
@@ -77,6 +81,7 @@ repro <- rbind(
       0.7821, 0.6430, 0.5000, 0.3531)
 )
 repro <- cbind(repro, matrix(0,2,178))
+
 
 
 # % relative attack rate on the different instars
@@ -352,15 +357,21 @@ invisible(
            }))
 
 
-Ymax <- 1.2 * max(max(Xr+Xs))
-Ymax2 <- 1.2 * max(max(Xr+Xs))
+Ymax <- 1.2 * max(Xr+Xs)
+Ymax2 <- 1.2 * max(Xr+Xs)
 range <- c(0, Tmax, 0, Ymax)
 Tmin <- 1
 
 # Figure 1
 plot(1:(Tmax-Tmin+1),Xr[Tmin:Tmax,1]+Xs[Tmin:Tmax,1], type = 'l', col = 'dodgerblue')
-lines(1:(Tmax-Tmin+1),Xr[Tmin:Tmax,2]+Xs[Tmin:Tmax,2], col = 'dodgerblue')
+lines(1:(Tmax-Tmin+1),Xr[Tmin:Tmax,2]+Xs[Tmin:Tmax,2], col = 'dodgerblue', lty = 2)
 lines(1:(Tmax-Tmin+1),Ymax2 * (Yr[Tmin:Tmax,1]+Ys[Tmin:Tmax,1]), col = 'firebrick')
 lines(1:(Tmax-Tmin+1),Ymax2 * (Yr[Tmin:Tmax,2]+Ys[Tmin:Tmax,2]), col = 'firebrick', lty = 2)
 lines(1:(Tmax-Tmin+1),Ymax2*(Xr[Tmin:Tmax,1]+Xr[Tmin:Tmax,2])/
          (Xr[Tmin:Tmax,1]+Xr[Tmin:Tmax,2]+Xs[Tmin:Tmax,1]+Xs[Tmin:Tmax,2]), col = 'black')
+
+# Blue is aphid abundances
+# Red is parasitoid abundances
+# Black is (resistant aphids) / (total aphids)
+
+

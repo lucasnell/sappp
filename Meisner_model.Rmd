@@ -1,0 +1,141 @@
+---
+title: "Meisner model"
+author: "Lucas Nell"
+date: "8/27/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+This document summarizes the math behind the model in 
+[Meisner et al. (2014)](http://doi.wiley.com/10.1890/13-1933.1).
+
+
+
+
+- t = time
+- T = temperature
+- X(t) is a vector giving the number of aphids in each age class on day t
+- Y_i(t) is the number of parasitoids in age class i
+- m_1 is the number of days parasitoids remain within still-living aphids
+- m is the number of days for adult parasitoid emergence
+- Aphid survival and reproduction are given in the Leslie matrix L(T) that depends on 
+-   temperature T and was parameterized from the individual laboratory experiments.
+- z(t) is density of unparasitized plus parasitized aphids
+- Functions S(z(t)) and S_y(z(t)) give the survivals of aphids and parasitized aphids
+
+- The parasitoid attack rate depends on temperature T, and the proportion of aphids 
+  escaping parasitism, A(x(t),Y_m(t)|T), is assumed to be aggregated according to 
+  a negative binomial distribution and depends on the density of parasitoid adult 
+  females Y_m(t), the total density of aphids x(t)... and the stage of the aphid.
+
+- Once parasitized aphids turn into mummies (after m_1 days), mummies are assumed to 
+  have 100% survival.
+- The adult parasitoids have daily survival s_y, and adult females appear as mummies 
+  emerge at day m with a sex ratio of 1/2.
+
+- Process error (environmental + demographic stochasticity) was included as the 
+  random variables ε(t) and ε_y(t).
+
+
+# Overall model
+
+> Note: $\cdot$ <-- means element-wise multiplication
+
+
+$$
+  \text{\textbf{X}}(t+1) = S(z(t)) \cdot \text{\textbf{A}}(x(t), Y_m(t)|T) \cdot
+  (\text{\textbf{L}}(T) \text{\textbf{X}}(t)) \cdot e^{\varepsilon(t)}
+$$
+
+$$
+  Y_1(t+1) = S_y(z(t)) \cdot (1 - \text{\textbf{A}}(x(t), Y_m(t)|T))' 
+  \text{\textbf{L}}(T) \text{\textbf{X}}(t)
+$$
+
+$$
+  Y_i(t+1) = s_i S_y(z(t)) Y_{i-1}(t) e^{\varepsilon(t)}   \text{ for }(i=1, \ldots, m_1)
+$$
+$$
+  Y_i(t+1) = Y_{i-1}(t)   \text{ for }(i=m_1 + 1, \ldots, m - 1)
+$$
+$$
+  Y_m(t+1) = \left( s_y Y_m(t) + \frac{1}{2} Y_{m-1}(t) \right) e^{\varepsilon_y(t)}
+$$
+
+# Sub-functions
+
+$$
+    \text{\textbf{L}}(T) = 
+        \begin{pmatrix}
+            0       & f_1   & f_2       & \cdots    & f_{n-1}   \\
+            s_1     & 0     & 0         &           & 0         \\
+            0       & s_2   & 0         &           & 0         \\
+            \vdots  &       &           & \ddots    & \vdots    \\
+            0       & 0     & \cdots    & s_{n-1}   & 0    \\
+        \end{pmatrix}
+$$
+
+where $s_i$ and $f_i$ are age-specific survivorships and fecundities, respectively
+
+
+$$
+  z = \sum_{i=1}^n X_i + \sum_{i=1}^{m_1} Y_i
+$$
+
+where $X_i$ is the number of aphids in age group $i$, $Y_i$ is number of parasitoids 
+in age group $i$.
+
+
+$$
+  S(z) = \left( 1 + \frac{z}{K} \right)^{-1}
+$$
+
+where smaller values of the parameter $K$ correspond to stronger density dependence
+
+
+Elements of $\text{\textbf{A}}(x,Y_m|T)$ are...
+
+$$
+  \left( 1 + \frac{ a \alpha(T) p_i Y_m }{ k(h x + 1) } \right)^{-k}
+$$
+
+where $a$ is a parameter governing the overall attack rate,
+$\alpha(T)$ scales the attack rate according to temperature $T$,
+$p_i$ is the relative attack rate on aphids in stage $i$, 
+$h$ is the handling time that makes the attack rate depend on aphid density, and 
+$k$ is the aggregation parameter of the negative binomial distribution
+
+
+
+
+$$
+  S_y(z) = \left( 1 + \frac{z}{K_y} \right)^{-1}
+$$
+
+This has the same form as aphid density-dependent
+survival, but replaces K with Ky so that the strength of
+density dependence affecting parasitized aphids is
+estimated separately from that affecting unparasitized
+aphids.
+
+
+Left off on page 463, under equation 7, in the paragraph that stars with...
+"The random variable $\varepsilon(t)$ describing the effect of demographic..."
+
+
+
+
+
+<!---
+# Growth rate
+# r(T) = exp(r0 + r1 * T(t))
+
+# Parasitoid attack rate:
+# a(T) = exp(a0 + a1 * T(t))
+-->
+
