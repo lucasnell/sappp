@@ -5,28 +5,11 @@
 # 
 
 
-
-
-
-
-
 library(Matrix) # for sparse matrices
 
 
-# Equivalent to diag(v, k) in MATLAB
-diag_ml <- function(v, k = 0) {
-    k <- as.integer(k)
-    md <- diag(as.vector(v))
-    md2 <- matrix(0, nrow(md) + abs(k), ncol(md) + abs(k))
-    if (k > 0) {
-        md2[1:nrow(md), (k+1):ncol(md2)] <- md
-    } else if (k < 0) {
-        md2[(abs(k)+1):nrow(md2), 1:ncol(md)] <- md
-    } else {
-        md2 <- md
-    }
-    return(md2)
-}
+Rcpp::sourceCpp('high_tunnel.cpp')
+
 
 # Check if any numbers are actually complex (imaginary part is != 0)
 any_complex <- function(x) {
@@ -52,10 +35,48 @@ instar_to_stage <- function(stage_values, .n_stages = n_aphid_stages,
 }
 
 
+# Equation 6 from the paper
+attack_probs <- function(a, p_i, Y_m, x, h, k, resist_surv = NULL) {
+    mm <- cbind(a * p_i * Y_m / (h * x + 1))
+    AA <- (1 + mm / k)
+    if (is.null(resist_surv)) {
+        AA <- AA^(-k)
+    } else {
+        stopifnot(length(resist_surv) == 2)
+        AA <- AA^(-k) + 
+            resist_surv[1] * mm * AA^(-k-1) + 
+            resist_surv[2] * (1-(AA^(-k) + mm * AA^(-k-1)))
+    }
+    return(AA)
+}
+
+# Make new column of parasitoid abundances [i.e., Y(t+1), last 4 lines of Equation 2 
+# in paper]
+# In paper, sex_ratio = 1/2, pred_rate not present
+parasitoid_abunds <- function(S_y.zt, A, L, X, Y_t, s_i, s_y, m_1, sex_ratio, pred_rate) {
+    
+    Y_t <- cbind(Y_t)
+    X <- cbind(X)
+    
+    # Y(t+1)
+    Y_t1 <- Y_t
+    # Y_1(t+1)
+    Y_t1[1] <- (S_y.zt * t(1 - A)) %*% as.matrix(L %*% X)
+    # Y_i(t+1) for (i = 1, ..., m_1)
+    Y_t1[2:(m_1+1)] <- s_i * S_y.zt * Y_t[1:m_1]
+    # Y_i(t+1) for (i = m_1+1, ..., m-1) 
+    Y_t1[(m_1+2):(length(Y_t1)-1)] <- pred_rate * Y_t[(m_1+1):(length(Y_t)-2)]
+    # Y_m(t+1)
+    Y_t1[length(Y_t1)] <- s_y * Y_t[length(Y_t)] + sex_ratio * Y_t[(length(Y_t)-1)]
+    
+    return(Y_t1)
+}
+
+
 
 
 # global n_aphid_stages stage_days mum_days surv_juv surv_adult rel_attack 
-# sex_ratio Leslie_r Leslie_s clone
+# sex_ratio leslie_r leslie_s clone
 
 
 # NOTE: The code is set up for 2 clones that have different life histories.
@@ -70,7 +91,8 @@ instar_to_stage <- function(stage_values, .n_stages = n_aphid_stages,
 # columns: 1=aphid juv, 2=aphid adult
 # values 1=low growth rate, 2=high growth rate
 clone <- rbind(c(2, 1), c(2, 2))
-
+# Values dictate which rows will be selected from matrices of demographic rates below
+# (stage_days, surv_juv, surv_adult, repro)
 
 
 
@@ -83,21 +105,23 @@ n_lines <- 2
 
 n_wasp_stages <- sum(mum_days) + 1
 
-# Number of days per instar and mummy development stage
+# Number of days per instar
 stage_days <- rbind(c(2, 2, 2, 2, 19), c(1, 1, 1, 2, 23))
+# Number of days for parasitized (but still living) aphids and mummies
 mum_days <- cbind(7, 3)
 
 
 # juvenile survival
-surv_juv <- cbind(0.9745, 0.9849)
+surv_juv <- rbind(0.9745, 0.9849)
 
 # adult survival
-surv_adult <- rbind(c(1.0000, 0.9949, 0.9818, 0.9534, 0.8805, 0.8367, 0.8532, 0.8786, 0.8823, 
-              0.8748, 0.8636, 0.8394, 0.8118, 0.8096, 0.8240, 0.8333, 0.7544, 0.5859, 
-              0.4155, 0.2216),
-            c(1.0000, 0.9986, 0.9951, 0.9874, 0.9675, 0.9552, 0.9550, 0.9549, 0.9462, 
-              0.8992, 0.8571, 0.8408, 0.8281, 0.8062, 0.7699, 0.7500, 0.7559, 0.7649, 
-              0.7240, 0.4367))
+surv_adult <- rbind(
+    c(1.0000, 0.9949, 0.9818, 0.9534, 0.8805, 0.8367, 0.8532, 0.8786, 0.8823, 
+      0.8748, 0.8636, 0.8394, 0.8118, 0.8096, 0.8240, 0.8333, 0.7544, 0.5859, 
+      0.4155, 0.2216),
+    c(1.0000, 0.9986, 0.9951, 0.9874, 0.9675, 0.9552, 0.9550, 0.9549, 0.9462, 
+      0.8992, 0.8571, 0.8408, 0.8281, 0.8062, 0.7699, 0.7500, 0.7559, 0.7649, 
+      0.7240, 0.4367))
 surv_adult <- cbind(surv_adult, matrix(0,n_lines,180))
 
 # reproduction
@@ -122,12 +146,12 @@ rel_attack <- instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06))
 
 sex_ratio <- 0.5
 
-
-a <- 2.5        # parasitoid attack rate (2.32 in paper)
-k <- 0.0005     # aphid density dependence (0.000467 in paper)
-kp <- 0.0006    # parasitized aphid density dependence (0.00073319 in paper)
-kk <- 0.1811    # ?? (difference between r at 20 and 27 deg??)
-h <- 0.0363     # ?? (h was 0.008 in paper)
+# Estimated values from paper (symbol; value from paper)
+a <- 2.5        # parasitoid attack rate (a; 2.32)
+k <- 0.0005     # aphid density dependence (K; 0.000467)
+kp <- 0.0006    # parasitized aphid density dependence (K_y; 0.00073319)
+kk <- 0.1811    # aggregation parameter of the negative binomial distribution (k; 0.35)
+h <- 0.0363     # parasitoid attack rate handling time (h; 0.008, 0.029 at 27 deg C)
 
 sw <- 0.55      # r at 27 degrees C ?? (0.554 in paper)
 
@@ -155,10 +179,10 @@ resist_surv <- cbind(0.9, 0.6)
 # =============================================
 
 # Create Leslie matrix from aphid info
-Leslie_matrix <- function(n_stages, stage_days, clone_row, surv_juv, surv_adult, repro) {
+leslie_matrix <- function(n_stages, stage_days, clone_row, surv_juv, surv_adult, repro) {
     juv_time <- sum(stage_days[clone_row[1], 1:(ncol(stage_days)-1)])
     # Age-specific survivals
-    LL <- diag_ml(c(surv_juv[,clone_row[1]] * matrix(1,1,juv_time), 
+    LL <- diag_mat(c(surv_juv[clone_row[1],] * matrix(1,1,juv_time), 
                     surv_adult[clone_row[2], 1:(n_stages-juv_time-1)]), -1)
     # Age-specific fecundities
     LL[1,(juv_time+1):(juv_time+stage_days[clone_row[1],ncol(stage_days)])] <- 
@@ -166,8 +190,10 @@ Leslie_matrix <- function(n_stages, stage_days, clone_row, surv_juv, surv_adult,
     return(LL)
 }
 
-# Not sure what this object creates yet, but it's used below
-Leslie_dist <- function(L) {
+# This computes the "stable age distribution" from the Leslie matrix, which is 
+# the proportion of different classes that is required for the population to grow 
+# exponentially
+leslie_sad <- function(L) {
     L_eigen <- eigen(L)
     SAD <- L_eigen$vectors
     r <- matrix(L_eigen$values, ncol = 1)
@@ -183,16 +209,17 @@ Leslie_dist <- function(L) {
 
 # resistant clones
 # ------
-Leslie_r <- Leslie_matrix(n_aphid_stages, stage_days, clone[1,], surv_juv, surv_adult, repro)
-SADdistr <- Leslie_dist(Leslie_r)
+leslie_r <- leslie_matrix(n_aphid_stages, stage_days, clone[1,], surv_juv, 
+                          surv_adult, repro)
+sad_r <- leslie_sad(leslie_r)
 
 
 # susceptible clones
 # ------
-Leslie_s <- Leslie_matrix(n_aphid_stages, stage_days, clone[2,], surv_juv, surv_adult, repro)
-SADdists <- Leslie_dist(Leslie_s)
+leslie_s <- leslie_matrix(n_aphid_stages, stage_days, clone[2,], surv_juv, 
+                          surv_adult, repro)
+sad_s <- leslie_sad(leslie_s)
 
-# Not sure what SADdist objects are
 
 
 # =============================================
@@ -206,10 +233,11 @@ n_fields <- 2
 # kill rate at harvesting
 kill <- 0.05
 
-# dispersal rates between fields for aphids, adult wasps, and predators
+# dispersal rates between fields for aphids, adult wasps
 disp_aphid <- 0.05
 disp_wasp <- 1
-disp_pred <- 0.8
+# Predation rate
+pred_rate <- 0.8
 
 # initial densities of aphids and parasitoids
 init_x <- 20
@@ -228,21 +256,21 @@ prop_resist <- 0.05
 # run program
 # =============================================
 
-init_x_resist <- prop_resist * init_x * SADdistr %*% matrix(1,1,n_fields)
-init_x_susc <- (1-prop_resist) * init_x * SADdists %*% matrix(1,1,n_fields)
+# Initial densities of aphids by stage
+xr <- prop_resist * init_x * sad_r %*% matrix(1,1,n_fields)
+xs <- (1-prop_resist) * init_x * sad_s %*% matrix(1,1,n_fields)
 
+# Initial parasitoid densities by stage (starting with no parasitized aphids or mummies)
 yr <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
 ys <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
 
-
-
+# Setting total time (days) and times for harvesting
 max_time <- cycle_length * (1 + n_cycles)
 harvest_times <- rbind(c(cycle_length * 1:n_cycles),
                       c(cycle_length * 1, cycle_length * (2:(n_cycles-1)) - cycle_length/2,
                         cycle_length * n_cycles))
 
-xs <- init_x_susc
-xr <- init_x_resist
+
 
 
 
@@ -258,69 +286,62 @@ HighTunnelExptSimfunct <- function(
     # s1,s2,rho,
     # sm,
     max_time,n_fields,kill,
-    harvest_times,disp_aphid,disp_wasp,disp_pred,
+    harvest_times,disp_aphid,disp_wasp,pred_rate,
     n_aphid_stages, n_wasp_stages, stage_days, mum_days, surv_juv, surv_adult, 
-    rel_attack, sex_ratio, Leslie_r, Leslie_s, clone) {
+    rel_attack, sex_ratio, leslie_r, leslie_s, clone) {
     
-    # global n_aphid_stages stage_days mum_days surv_juv surv_adult 
-    # rel_attack sex_ratio Leslie_r Leslie_s clone
-
     # This is for measurement error part:
     # Su <- 0.2015^2 * diag(1, 2)
     # # increased ME for mummies for development time
     # Su[2,2] <- sm * Su[2,2]
     
+    # Storing aphid (X) and wasp (Y) for resistant (r) and susceptible (s) clones in 
+    # n_fields fields
     Xr <- matrix(0, max_time, n_fields)
     Yr <- matrix(0, max_time, n_fields)
     Xs <- matrix(0, max_time, n_fields)
     Ys <- matrix(0, max_time, n_fields)
     
-    LLr <- Matrix(Leslie_r, sparse = TRUE)
-    LLs <- Matrix(Leslie_s, sparse = TRUE)
+    # Leslie matrices for resistant and susceptible aphids
+    LLr <- Matrix(leslie_r, sparse = TRUE)
+    LLs <- Matrix(leslie_s, sparse = TRUE)
     
     for (t in 1:max_time) {
         for (i in 1:n_fields) {
+            # Numbers of parasitized (but still living) aphids
             ypr <- yr[1:mum_days[1], i]
             ypr <- ypr[ypr>0]
             yps <- ys[1:mum_days[1], i]
             yps <- yps[yps>0]
             
-            sxyt <- sum(c(xr[,i], xs[,i], ypr, yps))
-            Kt <- 1 / (1 + k * sxyt)
-            Kpt <- 1 / (1 + kp * sxyt)
+            # Total number of living aphids (z in the paper)
+            z <- sum(c(xr[,i], xs[,i], ypr, yps))
             
+            # Equivalent to S(z(t)) and S_y(z(t)) [no idea why equations are different]
+            Kt <- 1 / (1 + k * z)
+            Kpt <- 1 / (1 + kp * z)
             
-            mm <- rbind(a * rel_attack[clone[1,1],] * (yr[nrow(yr),i] + ys[nrow(ys),i]) / 
-                            (h * sxyt + 1))
-            AA <- (1 + t(mm) / kk)
-            As <- AA^(-kk)
+            # Matrices of attack probabilities using equation 6 from paper
+            As <- attack_probs(a = a, p_i = rel_attack[clone[1,1],], 
+                               Y_m = yr[nrow(yr),i] + ys[nrow(ys),i], 
+                               x = z, h = h, k = kk)
+            Ar <- attack_probs(a = a, p_i = rel_attack[clone[2,1],], 
+                               Y_m = yr[nrow(yr),i] + ys[nrow(ys),i], 
+                               x = z, h = h, k = kk, resist_surv = resist_surv)
             
-            mm <- rbind(a * rel_attack[clone[2,1],] * (yr[nrow(yr),i] + ys[nrow(ys),i]) / 
-                            (h * sxyt + 1))
-            AA <- (1 + t(mm) / kk)
-            Ar <- AA^(-kk) + resist_surv[1] * t(mm) * AA^(-kk-1) + resist_surv[2] *
-                (1-(AA^(-kk) + t(mm) * AA^(-kk-1)))
+            # X(t+1) (first line of equation 2; pred_rate was added later)
+            xtr <- (pred_rate * Kt * Ar) * as.matrix(LLr %*% xr[,i])
+            xts <- (pred_rate * Kt * As) * as.matrix(LLs %*% xs[,i])
             
-            xtr <- (disp_pred * Kt * Ar) * as.matrix(LLr %*% xr[,i])
-            xts <- (disp_pred * Kt * As) * as.matrix(LLs %*% xs[,i])
-            
-            yt <- cbind(yr[,i])
-            y <- cbind(yr[,i])
-            x <- cbind(xr[,i])
-            yt[length(yt)] <- sw * y[length(y)] + sex_ratio * y[(length(y)-1)]
-            yt[(mum_days[1]+2):(length(yt)-1)] <- disp_pred * y[(mum_days[1]+1):(length(y)-2)]
-            yt[2:(mum_days[1]+1)] <- Kpt * surv_juv[clone[1,1]] * y[1:mum_days[1]]
-            yt[1] <- (Kpt * t(matrix(1,n_aphid_stages,1) - Ar)) %*% as.matrix(LLr %*% x)
-            ytr <- yt
-            
-            yt <- cbind(ys[,i])
-            y <- cbind(ys[,i])
-            x <- cbind(xs[,i])
-            yt[length(yt)] <- sw * y[length(y)] + sex_ratio * y[(length(y)-1)]
-            yt[(mum_days[1]+2):(length(yt)-1)] <- disp_pred * y[(mum_days[1]+1):(length(y)-2)]
-            yt[2:(mum_days[1]+1)] <- Kpt * surv_juv[clone[2,1]] * y[1:mum_days[1]]
-            yt[1] <- (Kpt * t(matrix(1,n_aphid_stages,1) - As)) %*% as.matrix(LLs %*% x)
-            yts <- yt
+            # Filling in column of parasitoid stage abundances
+            ytr <- parasitoid_abunds(S_y.zt = Kpt, A = Ar, L = LLr, X = xr[,i], 
+                                     Y_t = yr[,i], s_i = surv_juv[clone[1,1]], 
+                                     s_y = sw, m_1 = mum_days[1], sex_ratio = sex_ratio, 
+                                     pred_rate = pred_rate)
+            yts <- parasitoid_abunds(S_y.zt = Kpt, A = As, L = LLs, X = xs[,i], 
+                                     Y_t = ys[,i], s_i = surv_juv[clone[2,1]], 
+                                     s_y = sw, m_1 = mum_days[1], sex_ratio = sex_ratio, 
+                                     pred_rate = pred_rate)
             
             # This code for stochasticity is dead
             # process error for aphids, parasitized aphids, and adult parasitoids		
@@ -340,25 +361,25 @@ HighTunnelExptSimfunct <- function(
             # E <- iD %*% rnorm(length(ypick))
             
             if (t %in% harvest_times[i,1:(ncol(harvest_times)-1)]) {
-                # Tony used a matrix for the end of a sequence (1:mum_days).
-                # The behavior of this in matlab is to just end at the first element of 
-                # the matrix (i.e., 1:mum_days[1,1])
-                mumInts_ <- mum_days[1,1]
+                # Kill non-parasitized aphids
                 xtr <- kill * xtr
-                ytr[1:mumInts_] <- kill * ytr[1:mumInts_]
-                ytr[(mumInts_+1):(length(ytr)-1)] <- 0
-                
                 xts <- kill * xts
-                yts[1:mumInts_] <- kill * yts[1:mumInts_]
-                yts[(mumInts_+1):(length(yts)-1)] <- 0
+                # Kill parasitized (but still living) aphids at the same rate
+                ytr[1:mum_days[1]] <- kill * ytr[1:mum_days[1]]
+                yts[1:mum_days[1]] <- kill * yts[1:mum_days[1]]
+                # Kill all mummies
+                ytr[(mum_days[1]+1):(length(ytr)-1)] <- 0
+                yts[(mum_days[1]+1):(length(yts)-1)] <- 0
             }
             
+            # Filling in values for the next iteration (xr, xs, yr, ys hold time t info)
             xr[,i] <- xtr
             xs[,i] <- xts
             yr[,i] <- ytr
             ys[,i] <- yts
         }
         
+        # First 4 instars apparently don't disperse
         dispersing <- disp_aphid * cbind(rowMeans(xr[(sum(stage_days[clone[1,1],1:4])+1):nrow(xr),]))
         xr[(sum(stage_days[clone[1,1],1:4])+1):nrow(xr),] <- (1-disp_aphid) *
             xr[(sum(stage_days[clone[1,1],1:4])+1):nrow(xr),] + 
@@ -377,13 +398,14 @@ HighTunnelExptSimfunct <- function(
         
         nap <- n_aphid_stages + mum_days[1]
         
-        yy <- rbind(xr, yr)
-        Xr[t,] <- colSums(yy[1:nap,])
-        Yr[t,] <- colSums(yy[(n_aphid_stages+1):nap,]) / colSums(yy[1:nap,])
+        # X is sum of all living aphids
+        Xr[t,] <- colSums(xr) + colSums(yr[1:mum_days[1],])
+        Xs[t,] <- colSums(xs) + colSums(ys[1:mum_days[1],])
         
-        yy <- rbind(xs, ys)
-        Xs[t,] <- colSums(yy[1:nap,])
-        Ys[t,] <- colSums(yy[(n_aphid_stages+1):nap,]) / colSums(yy[1:nap,])
+        # Y is proportion of live aphids that are parasitized
+        Yr[t,] <- colSums(yr[1:mum_days[1],]) / Xr[t,]
+        Ys[t,] <- colSums(ys[1:mum_days[1],]) / Xs[t,]
+        
     }
     
 
@@ -399,10 +421,10 @@ out_list <- HighTunnelExptSimfunct(xr,xs,yr,ys,a,resist_surv,k,kp,kk,h,sw,
                                    # s1,s2,rho,
                                    # sm,
                                    max_time,n_fields,kill,harvest_times,disp_aphid,
-                                   disp_wasp,disp_pred,
+                                   disp_wasp,pred_rate,
                                    n_aphid_stages, n_wasp_stages, stage_days, mum_days, 
                                    surv_juv, surv_adult, 
-                                   rel_attack, sex_ratio, Leslie_r, Leslie_s, clone)
+                                   rel_attack, sex_ratio, leslie_r, leslie_s, clone)
 # Assigning out_list values to global ones for objects Xr, Xs, Yr, Ys, xr, xs, yr, & ys
 invisible(
     lapply(names(out_list), 
