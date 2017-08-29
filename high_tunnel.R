@@ -438,22 +438,63 @@ Ymax2 <- 1.2 * max(Xr+Xs)
 range <- c(0, max_time, 0, Ymax)
 min_time <- 1
 
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+
+aphids <- as_data_frame(cbind(Xr, Xs)) %>%
+    mutate(time = 1:nrow(Xs), 
+           `1` = V1+V3, `2` = V2+V4,
+           # (resistant aphids) / (total aphids):
+           r_prop = (V1+V2)/(V1+V2+V3+V4)) %>% 
+    select(-1:-4) %>% 
+    gather('field', 'density', 2:3, factor_key = TRUE)
+
+wasps <- as_data_frame(cbind(Ys, Yr)) %>%
+    mutate(time = 1:nrow(Ys), 
+           `1` = V1+V3, `2` = V2+V4) %>% 
+    select(-1:-4) %>% 
+    gather('field', 'density', 2:3, factor_key = TRUE)
+
+
+aphids %>% 
+    ggplot(aes(time)) +
+    theme_classic() +
+    theme(legend.position = c(0.01, 0.99), legend.direction = 'horizontal',
+          legend.justification = c('left', 'top')) +
+    geom_line(aes(y = density, linetype = field), color = 'dodgerblue') +
+    geom_line(data = wasps, aes(y = density * 330, linetype = field), 
+              color = 'firebrick') +
+    geom_line(aes(y = r_prop * 330)) +
+    geom_text(data = data_frame(time = c(350, 50, 300), y = c(185, 165, 230), 
+                                lab = c('aphids', '% parasit.', '% resist.')),
+              aes(y = y, label = lab), color = c('dodgerblue', 'firebrick', 'black'),
+              hjust = 0, vjust = 0) +
+    scale_y_continuous('aphid density', 
+                       sec.axis = sec_axis(~ . * 100 / 330, name = '%'))
+
+
+
+
 # Figure 1
 plot(1:(max_time-min_time+1),Xr[min_time:max_time,1]+Xs[min_time:max_time,1], 
-     type = 'l', col = 'dodgerblue')
+     type = 'l', col = 'dodgerblue', ylab = '', xlab = 'time', main = '')
 lines(1:(max_time-min_time+1),Xr[min_time:max_time,2]+Xs[min_time:max_time,2], 
       col = 'dodgerblue', lty = 2)
 lines(1:(max_time-min_time+1),Ymax2 * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]), 
       col = 'firebrick')
 lines(1:(max_time-min_time+1),Ymax2 * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]), 
       col = 'firebrick', lty = 2)
-lines(1:(max_time-min_time+1),Ymax2*(Xr[min_time:max_time,1]+Xr[min_time:max_time,2])/
-         (Xr[min_time:max_time,1]+Xr[min_time:max_time,2]+Xs[min_time:max_time,1]+
-              Xs[min_time:max_time,2]), 
+lines(1:(max_time-min_time+1),Ymax2*rowSums(Xr[min_time:max_time,])/
+         (rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])), 
       col = 'black')
 
 # Blue is aphid abundances
 # Red is parasitoid abundances
 # Black is (resistant aphids) / (total aphids)
-# Dotted lines might be a different harvesting regime
+# Dotted lines are field # 2 (different harvesting regime)
+
+identical((Xr[min_time:max_time,1]+Xr[min_time:max_time,2]), rowSums(Xr[min_time:max_time,]))
 
