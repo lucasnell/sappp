@@ -3,15 +3,16 @@
 // #define ARMA_NO_DEBUG
 
 #include <RcppArmadillo.h>
-#include <cmath>
+#include <sitmo.h>
+#include <random>
 
 
 using namespace Rcpp;
 using namespace std;
 using namespace arma;
 
-//[[Rcpp::depends(RcppArmadillo)]]
-
+//[[Rcpp::depends(RcppArmadillo, sitmo)]]
+//[[Rcpp::plugins(cpp11)]]
 
 // 
 // Expand from values per instar to per stage (i.e., day)
