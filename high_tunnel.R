@@ -7,76 +7,11 @@
 
 library(Matrix) # for sparse matrices
 
-
+# Provides functions instar_to_stage, leslie_matrix, leslie_sad, attack_probs, 
+# parasitoid_abunds
 Rcpp::sourceCpp('high_tunnel.cpp')
 
 
-# Check if any numbers are actually complex (imaginary part is != 0)
-any_complex <- function(x) {
-    any(sapply(x, function(xx) !identical(Im(xx), 0)))
-}
-
-
-
-# Expand from values per instar to per stage (i.e., day)
-instar_to_stage <- function(stage_values, .n_stages = n_aphid_stages, 
-                            .stage_days = stage_days) {
-    
-    .n_lines <- nrow(stage_days)
-    
-    .one_col <- function(jv, sdj, ns) c(rep(jv, sdj), rep(0, max(c(0, ns - sum(sdj)))))
-    
-    do.call(rbind, 
-            lapply(1:.n_lines, function(j) {
-                j_values <- stage_values[ifelse(nrow(stage_values) == 1, 1, j),]
-                .one_col(j_values, .stage_days[j,], .n_stages)
-            }))
-    
-}
-
-
-# Equation 6 from the paper
-attack_probs <- function(a, p_i, Y_m, x, h, k, resist_surv = NULL) {
-    mm <- cbind(a * p_i * Y_m / (h * x + 1))
-    AA <- (1 + mm / k)
-    if (is.null(resist_surv)) {
-        AA <- AA^(-k)
-    } else {
-        stopifnot(length(resist_surv) == 2)
-        AA <- AA^(-k) + 
-            resist_surv[1] * mm * AA^(-k-1) + 
-            resist_surv[2] * (1-(AA^(-k) + mm * AA^(-k-1)))
-    }
-    return(AA)
-}
-
-# Make new column of parasitoid abundances [i.e., Y(t+1), last 4 lines of Equation 2 
-# in paper]
-# In paper, sex_ratio = 1/2, pred_rate not present
-parasitoid_abunds <- function(S_y.zt, A, L, X, Y_t, s_i, s_y, m_1, sex_ratio, pred_rate) {
-    
-    Y_t <- cbind(Y_t)
-    X <- cbind(X)
-    
-    # Y(t+1)
-    Y_t1 <- Y_t
-    # Y_1(t+1)
-    Y_t1[1] <- (S_y.zt * t(1 - A)) %*% as.matrix(L %*% X)
-    # Y_i(t+1) for (i = 1, ..., m_1)
-    Y_t1[2:(m_1+1)] <- s_i * S_y.zt * Y_t[1:m_1]
-    # Y_i(t+1) for (i = m_1+1, ..., m-1) 
-    Y_t1[(m_1+2):(length(Y_t1)-1)] <- pred_rate * Y_t[(m_1+1):(length(Y_t)-2)]
-    # Y_m(t+1)
-    Y_t1[length(Y_t1)] <- s_y * Y_t[length(Y_t)] + sex_ratio * Y_t[(length(Y_t)-1)]
-    
-    return(Y_t1)
-}
-
-
-
-
-# global n_aphid_stages stage_days mum_days surv_juv surv_adult rel_attack 
-# sex_ratio leslie_r leslie_s clone
 
 
 # NOTE: The code is set up for 2 clones that have different life histories.
@@ -103,13 +38,13 @@ clone <- rbind(c(2, 1), c(2, 2))
 n_aphid_stages <- 32
 n_lines <- 2
 
-n_wasp_stages <- sum(mum_days) + 1
 
 # Number of days per instar
 stage_days <- rbind(c(2, 2, 2, 2, 19), c(1, 1, 1, 2, 23))
 # Number of days for parasitized (but still living) aphids and mummies
 mum_days <- cbind(7, 3)
 
+n_wasp_stages <- sum(mum_days) + 1
 
 # juvenile survival
 surv_juv <- rbind(0.9745, 0.9849)
@@ -139,7 +74,8 @@ repro <- cbind(repro, matrix(0,n_lines,178))
 
 # Relative attack rate on the different instars from Ives et al 1999
 # `instar_to_stage` converts these values from per-instar to per-day
-rel_attack <- instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06))
+rel_attack <- instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06), 
+                              n_aphid_stages, stage_days)
 
 
 
@@ -152,14 +88,14 @@ k <- 0.0005     # aphid density dependence (K; 0.000467)
 kp <- 0.0006    # parasitized aphid density dependence (K_y; 0.00073319)
 kk <- 0.1811    # aggregation parameter of the negative binomial distribution (k; 0.35)
 h <- 0.0363     # parasitoid attack rate handling time (h; 0.008, 0.029 at 27 deg C)
+sw <- 0.55      # parasitoid adult daily survival (s_y; 0.69)
+s1 <- 0.44  # 0  # environmental standard deviation for aphids (sigma_x; 0.44)
+# s2 <- 0  # Doesn't appear to do anything
+s3 <- 0.35  # 0  # environmental standard deviation for parasitoids (sigma_y; 0.70)
+rho <- 2 / (1 + exp(-s3)) - 1  # environmental correlation among instars (rho; 1.0)
 
-sw <- 0.55      # r at 27 degrees C ?? (0.554 in paper)
 
-# used only in stochastic part:
-# s1 <- 0
-# s2 <- 0
-# s3 <- 0
-# rho <- 2 / (1 + exp(-s3)) - 1
+
 
 # not used at all:
 # mum_detect <- 0.3923
@@ -177,35 +113,6 @@ resist_surv <- cbind(0.9, 0.6)
 # =============================================
 # set up Leslie matrices
 # =============================================
-
-# Create Leslie matrix from aphid info
-leslie_matrix <- function(n_stages, stage_days, clone_row, surv_juv, surv_adult, repro) {
-    juv_time <- sum(stage_days[clone_row[1], 1:(ncol(stage_days)-1)])
-    # Age-specific survivals
-    LL <- diag_mat(c(surv_juv[clone_row[1],] * matrix(1,1,juv_time), 
-                    surv_adult[clone_row[2], 1:(n_stages-juv_time-1)]), -1)
-    # Age-specific fecundities
-    LL[1,(juv_time+1):(juv_time+stage_days[clone_row[1],ncol(stage_days)])] <- 
-        repro[clone_row[2],1:(stage_days[clone_row[1],ncol(stage_days)])]
-    return(LL)
-}
-
-# This computes the "stable age distribution" from the Leslie matrix, which is 
-# the proportion of different classes that is required for the population to grow 
-# exponentially
-leslie_sad <- function(L) {
-    L_eigen <- eigen(L)
-    SAD <- L_eigen$vectors
-    r <- matrix(L_eigen$values, ncol = 1)
-    rmax <- max(abs(r))
-
-    SADdist <- SAD[, abs(r) == rmax]
-    SADdist <- SADdist / sum(SADdist)
-    if (!any_complex(SADdist)) SADdist <- as.numeric(SADdist)
-    SADdist <- matrix(SADdist, ncol = 1)
-    
-    return(SADdist)
-}
 
 # resistant clones
 # ------
@@ -281,6 +188,8 @@ harvest_times <- rbind(c(cycle_length * 1:n_cycles),
 
 
 
+
+
 HighTunnelExptSimfunct <- function(
     xr,xs,yr,ys,a,resist_surv,k,kp,kk,h,sw,
     # s1,s2,rho,
@@ -308,6 +217,7 @@ HighTunnelExptSimfunct <- function(
     
     for (t in 1:max_time) {
         for (i in 1:n_fields) {
+    # t=1;i=1
             # Numbers of parasitized (but still living) aphids
             ypr <- yr[1:mum_days[1], i]
             ypr <- ypr[ypr>0]
@@ -324,7 +234,7 @@ HighTunnelExptSimfunct <- function(
             # Matrices of attack probabilities using equation 6 from paper
             As <- attack_probs(a = a, p_i = rel_attack[clone[1,1],], 
                                Y_m = yr[nrow(yr),i] + ys[nrow(ys),i], 
-                               x = z, h = h, k = kk)
+                               x = z, h = h, k = kk, resist_surv = numeric(0))
             Ar <- attack_probs(a = a, p_i = rel_attack[clone[2,1],], 
                                Y_m = yr[nrow(yr),i] + ys[nrow(ys),i], 
                                x = z, h = h, k = kk, resist_surv = resist_surv)
@@ -334,31 +244,42 @@ HighTunnelExptSimfunct <- function(
             xts <- (pred_rate * Kt * As) * as.matrix(LLs %*% xs[,i])
             
             # Filling in column of parasitoid stage abundances
-            ytr <- parasitoid_abunds(S_y.zt = Kpt, A = Ar, L = LLr, X = xr[,i], 
+            ytr <- parasitoid_abunds(S_y_zt = Kpt, A = Ar, L = LLr, X = xr[,i], 
                                      Y_t = yr[,i], s_i = surv_juv[clone[1,1]], 
                                      s_y = sw, m_1 = mum_days[1], sex_ratio = sex_ratio, 
                                      pred_rate = pred_rate)
-            yts <- parasitoid_abunds(S_y.zt = Kpt, A = As, L = LLs, X = xs[,i], 
+            yts <- parasitoid_abunds(S_y_zt = Kpt, A = As, L = LLs, X = xs[,i], 
                                      Y_t = ys[,i], s_i = surv_juv[clone[2,1]], 
                                      s_y = sw, m_1 = mum_days[1], sex_ratio = sex_ratio, 
                                      pred_rate = pred_rate)
             
-            # This code for stochasticity is dead
-            # process error for aphids, parasitized aphids, and adult parasitoids		
+            
+            # # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # # This code for stochasticity is dead
+            # # process error for aphids, parasitized aphids, and adult parasitoids
+            # nap <- n_aphid_stages + mum_days[1]
             # Se <- matrix(0, n_aphid_stages+n_wasp_stages, n_aphid_stages+n_wasp_stages)
-            # Se[1:nap,1:nap] <- 
-            # 	s1^2 * (rho * matrix(1,nap,nap) + (1-rho) * diag(1,nap))
+            # Se[1:nap,1:nap] <-
+            # 	# s1^2 * (rho * matrix(1,nap,nap) + (1-rho) * diag(1,nap))
+            #     (s1^2 + min(0.5, 1 / abs(1 + sum(yy(1:nap))))) * 
+            #     (rho * matrix(1,nap,nap)+(1-rho)*diag(1,nap));
             # 
-            # Se[(nap+1):(end-1),(nap+1):(end-1)] <- 0
+            # Se[(nap+1):(nrow(Se)-1),(nap+1):(ncol(Se)-1)] <- 0
             # 
-            # Se[1:nap,(nap+1):(end-1)] <- 0
-            # Se[(nap+1):(end-1),1:nap] <- 0
+            # Se[1:nap,(nap+1):(ncol(Se)-1)] <- 0
+            # Se[(nap+1):(nrow(Se)-1),1:nap] <- 0
             # 
             # Se[nrow(Se),ncol(Se)] <- s3^2
             # ypick <- which(diag(Se) > 0)
             # 
             # iD <- t(chol(Se[ypick,ypick]))
             # E <- iD %*% rnorm(length(ypick))
+            # 
+            # # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            
+            
             
             if (t %in% harvest_times[i,1:(ncol(harvest_times)-1)]) {
                 # Kill non-parasitized aphids
@@ -396,8 +317,6 @@ HighTunnelExptSimfunct <- function(
         dispersingw <- disp_wasp * mean(ys[nrow(ys),])
         ys[nrow(ys),] <- ((1-disp_wasp) * ys[nrow(ys),] + dispersingw)
         
-        nap <- n_aphid_stages + mum_days[1]
-        
         # X is sum of all living aphids
         Xr[t,] <- colSums(xr) + colSums(yr[1:mum_days[1],])
         Xs[t,] <- colSums(xs) + colSums(ys[1:mum_days[1],])
@@ -433,10 +352,6 @@ invisible(
            }))
 
 
-Ymax <- 1.2 * max(Xr+Xs)
-Ymax2 <- 1.2 * max(Xr+Xs)
-range <- c(0, max_time, 0, Ymax)
-min_time <- 1
 
 
 library(dplyr)
@@ -445,22 +360,18 @@ library(ggplot2)
 
 
 aphids <- as_data_frame(cbind(Xr, Xs)) %>%
-    mutate(time = 1:nrow(Xs), 
-           `1` = V1+V3, `2` = V2+V4,
-           # (resistant aphids) / (total aphids):
-           r_prop = (V1+V2)/(V1+V2+V3+V4)) %>% 
+    mutate(time = 1:nrow(Xs), `1` = V1+V3, `2` = V2+V4,
+           r_prop = (V1+V2)/(V1+V2+V3+V4)) %>% # <-- (resistant aphids) / (total aphids)
     select(-1:-4) %>% 
     gather('field', 'density', 2:3, factor_key = TRUE)
 
 wasps <- as_data_frame(cbind(Ys, Yr)) %>%
-    mutate(time = 1:nrow(Ys), 
-           `1` = V1+V3, `2` = V2+V4) %>% 
+    mutate(time = 1:nrow(Ys), `1` = V1+V3, `2` = V2+V4) %>% 
     select(-1:-4) %>% 
     gather('field', 'density', 2:3, factor_key = TRUE)
 
 
-aphids %>% 
-    ggplot(aes(time)) +
+ggplot(aphids, aes(time)) +
     theme_classic() +
     theme(legend.position = c(0.01, 0.99), legend.direction = 'horizontal',
           legend.justification = c('left', 'top')) +
@@ -477,6 +388,12 @@ aphids %>%
 
 
 
+
+
+
+Ymax <- 1.2 * max(Xr+Xs)
+Ymax2 <- 1.2 * max(Xr+Xs)
+min_time <- 1
 
 # Figure 1
 plot(1:(max_time-min_time+1),Xr[min_time:max_time,1]+Xs[min_time:max_time,1], 
@@ -495,6 +412,4 @@ lines(1:(max_time-min_time+1),Ymax2*rowSums(Xr[min_time:max_time,])/
 # Red is parasitoid abundances
 # Black is (resistant aphids) / (total aphids)
 # Dotted lines are field # 2 (different harvesting regime)
-
-identical((Xr[min_time:max_time,1]+Xr[min_time:max_time,2]), rowSums(Xr[min_time:max_time,]))
 
