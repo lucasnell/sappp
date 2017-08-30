@@ -46,26 +46,23 @@ mat instar_to_stage(vec stage_values, uword n_stages, mat stage_days) {
 
 
 
-
+// 
 // Create Leslie matrix from aphid info
+// 
 //[[Rcpp::export]]
-mat leslie_matrix(int n_stages, imat stage_days, irowvec clone_row, 
-                  mat surv_juv, mat surv_adult, mat repro) {
-    // Converting to C++ indices
-    clone_row--;
+mat leslie_matrix(int n_stages, ivec stage_days, double surv_juv, 
+                   vec surv_adult, vec repro) {
     vec tmp;
     mat LL;
-    int juv_time = accu(stage_days(clone_row(0), span(0, (stage_days.n_cols-2))));
+    int juv_time = accu(stage_days(span(0, (stage_days.n_elem - 2))));
     // Age-specific survivals
     tmp = vec(n_stages - 1);
-    tmp.head(juv_time).fill(surv_juv(clone_row(0)));
-    tmp.tail(n_stages-juv_time-1) = surv_adult(clone_row(1),
-             span(0,(n_stages-juv_time-2))).t();
+    tmp.head(juv_time).fill(surv_juv);
+    tmp.tail(n_stages-juv_time-1) = surv_adult(span(0,(n_stages-juv_time-2)));
     LL = diagmat(tmp, -1);
     // Age-specific fecundities
-    LL(0, span(juv_time, juv_time + stage_days(clone_row(0),
-                                               stage_days.n_cols - 1) - 1)) =
-        repro(clone_row(1), span(0, stage_days(clone_row(0), stage_days.n_cols - 1) - 1));
+    LL(0, span(juv_time, juv_time + stage_days(stage_days.n_elem - 1) - 1)) =
+        repro(span(0, stage_days(stage_days.n_elem - 1) - 1)).t();
     
     return LL;
 }
@@ -126,7 +123,7 @@ mat attack_probs(double a, vec p_i, double Y_m, double x, double h, double k,
 // In paper, sex_ratio = 1/2, pred_rate not present
 // 
 //[[Rcpp::export]]
-vec parasitoid_abunds(double S_y_zt, vec A, sp_mat L, vec X, vec Y_t, double s_i, 
+vec parasitoid_abunds(double S_y_zt, vec A, mat L, vec X, vec Y_t, double s_i, 
                       double s_y, int m_1, double sex_ratio, double pred_rate) {
 
     mat tmp;
@@ -143,4 +140,22 @@ vec parasitoid_abunds(double S_y_zt, vec A, sp_mat L, vec X, vec Y_t, double s_i
     Y_t1.tail(1) = s_y * Y_t.tail(1) + sex_ratio * Y_t(Y_t.n_elem-2);
 
     return Y_t1;
+}
+
+
+
+// 
+// Dispersal (not in the paper)
+// 
+//[[Rcpp::export]]
+mat dispersal(mat P_mat, double disp_rate, uvec disp_stages) {
+    mat Pm = P_mat;
+    double immigration;
+    if (disp_stages.n_elem == 0) disp_stages = regspace<uvec>(0, Pm.n_rows - 1);
+    for (auto i : disp_stages) {
+        immigration = disp_rate * mean(Pm.row(i));
+        Pm.row(i) *= (1 - disp_rate); // emigration
+        Pm.row(i) += immigration;
+    }
+    return(Pm);
 }

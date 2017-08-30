@@ -8,7 +8,7 @@
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(Matrix) # for sparse matrices
+# library(Matrix) # for sparse matrices
 
 # Provides functions instar_to_stage, leslie_matrix, leslie_sad, attack_probs, 
 # parasitoid_abunds
@@ -61,7 +61,6 @@ base_plot <- function() {
 
 # mat X_t1, mat Y_t1, mat X_t, mat Y_t, double sigma_x, double sigma_y,
 # double rho, double z, double Y_m, uword total_stages, uword living_aphid
-
 
 
 process_error <- function(X_t1, Y_t1, X_t, Y_t, sigma_x, sigma_y, rho, z, Y_m, 
@@ -138,6 +137,8 @@ process_error <- function(X_t1, Y_t1, X_t, Y_t, sigma_x, sigma_y, rho, z, Y_m,
     
     return(list(aphids = X_t1_e, wasps = Y_t1_e));
 }
+
+
 
 
 # NOTE: The code is set up for 2 clones that have different life histories.
@@ -241,15 +242,16 @@ resist_surv <- cbind(0.9, 0.6)
 
 # resistant clones
 # ------
-leslie_r <- leslie_matrix(n_aphid_stages, stage_days, clone[1,], surv_juv, 
-                          surv_adult, repro)
+leslie_r <- leslie_matrix(n_aphid_stages, stage_days[clone[1,1],], surv_juv[clone[1,1]],
+                      surv_adult[clone[1,2],], repro[clone[1,2],])
 sad_r <- leslie_sad(leslie_r)
 
 
 # susceptible clones
 # ------
-leslie_s <- leslie_matrix(n_aphid_stages, stage_days, clone[2,], surv_juv, 
-                          surv_adult, repro)
+leslie_s <- leslie_matrix(n_aphid_stages, stage_days[clone[2,1],], surv_juv[clone[2,1]],
+                          surv_adult[clone[2,2],], repro[clone[2,2],])
+
 sad_s <- leslie_sad(leslie_s)
 
 
@@ -332,12 +334,12 @@ HighTunnelExptSimfunct <- function(
     Ys <- matrix(0, max_time, n_fields)
     
     # Leslie matrices for resistant and susceptible aphids
-    LLr <- Matrix(leslie_r, sparse = TRUE)
-    LLs <- Matrix(leslie_s, sparse = TRUE)
+    LLr <- leslie_r  # Matrix(leslie_r, sparse = TRUE)
+    LLs <- leslie_s  # Matrix(leslie_s, sparse = TRUE)
     
     for (t in 1:max_time) {
         for (i in 1:n_fields) {
-    # t=1;i=1
+            # t=1;i=1
             
             # Total number of living aphids (z in the paper)
             z <- sum(c(xr[,i], xs[,i], yr[1:mum_days[1], i], ys[1:mum_days[1], i]))
@@ -354,7 +356,7 @@ HighTunnelExptSimfunct <- function(
                                Y_m = yr[nrow(yr),i] + ys[nrow(ys),i], 
                                x = z, h = h, k = k, resist_surv = resist_surv)
             
-            # X(t+1) (first line of equation 2; pred_rate was added later)
+            # X(t+1) (first line of equation 2; pred_rate was added after paper)
             xtr <- (pred_rate * St * Ar) * as.matrix(LLr %*% xr[,i])
             xts <- (pred_rate * St * As) * as.matrix(LLs %*% xs[,i])
             
@@ -369,40 +371,6 @@ HighTunnelExptSimfunct <- function(
                                      pred_rate = pred_rate)
             
             
-            # # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            # # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            # # This code for stochasticity is dead
-            # # process error for aphids, parasitized aphids, and adult parasitoids
-            # Se <- matrix(0, n_aphid_stages+n_wasp_stages, n_aphid_stages+n_wasp_stages)
-            # 
-            # # Total days for living aphids (i.e., not parasitized or parasitized 
-            # # but not yet a mummy)
-            # living_aphids <- n_aphid_stages + mum_days[1]
-            # 
-            # # Aphid (both parasitized and not) process error
-            # Se[1:living_aphids,1:living_aphids] <-
-            #     # Version from paper:
-            #     (sigma_x^2 + min(0.5, 1 / abs(1 + z))) *
-            #     (rho * matrix(1,living_aphids,living_aphids)+(1-rho) * diag(1,living_aphids));
-            #     # # Version Tony sent:
-            # 	# sigma_x^2 * (rho * matrix(1,living_aphids,living_aphids) + (1-rho) * diag(1,living_aphids))
-            # 
-            # # Mummy process error (this isn't really needed, but I like it here for 
-            # # transparency)
-            # Se[(living_aphids+1):(nrow(Se)-1),(living_aphids+1):(ncol(Se)-1)] <- 0
-            # Se[1:living_aphids,(living_aphids+1):(ncol(Se)-1)] <- 0
-            # Se[(living_aphids+1):(nrow(Se)-1),1:living_aphids] <- 0
-            # 
-            # # Adult parasitoid process error
-            # Se[nrow(Se),ncol(Se)] <- sigma_y^2 + min(0.5, 1 / abs(1 + yr[nrow(yr),i]));
-            # ypick <- which(diag(Se) > 0)
-            # 
-            # iD <- t(chol(Se[ypick,ypick]))
-            # E <- iD %*% rnorm(length(ypick))
-            # 
-            # # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            # # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            
             error_list <- process_error(X_t1 = xtr, Y_t1 = ytr,
                                         X_t = xr[,i], Y_t = yr[,i],
                                         sigma_x = sigma_x, sigma_y = sigma_y, rho = rho,
@@ -410,7 +378,6 @@ HighTunnelExptSimfunct <- function(
                                         total_stages = n_aphid_stages + n_wasp_stages,
                                         living_aphids = n_aphid_stages + mum_days[1],
                                         sigma_d_mult = sigma_d_mult)
-
             xtr <- error_list$aphids
             ytr <- error_list$wasps
 
@@ -421,10 +388,10 @@ HighTunnelExptSimfunct <- function(
                                         total_stages = n_aphid_stages + n_wasp_stages,
                                         living_aphids = n_aphid_stages + mum_days[1],
                                         sigma_d_mult = sigma_d_mult)
-
             xts <- error_list$aphids
             yts <- error_list$wasps
             
+            # Do harvesting if it's in the list of harvest times
             if (t %in% harvest_times[i,1:(ncol(harvest_times)-1)]) {
                 # Kill non-parasitized aphids
                 xtr <- kill * xtr
@@ -444,22 +411,20 @@ HighTunnelExptSimfunct <- function(
             ys[,i] <- yts
         }
         
-        # First 4 instars apparently don't disperse
-        dispersing <- disp_aphid * cbind(rowMeans(xr[(sum(stage_days[clone[1,1],1:4])+1):nrow(xr),]))
-        xr[(sum(stage_days[clone[1,1],1:4])+1):nrow(xr),] <- (1-disp_aphid) *
-            xr[(sum(stage_days[clone[1,1],1:4])+1):nrow(xr),] + 
-            dispersing %*% matrix(1,1,n_fields)
+        # Dispersal
+        # ----
         
-        dispersing <- disp_aphid * cbind(rowMeans(xs[(sum(stage_days[clone[2,1],1:4])+1):nrow(xs),]))
-        xs[(sum(stage_days[clone[2,1],1:4])+1):nrow(xs),] <- (1-disp_aphid) *
-            xs[(sum(stage_days[clone[2,1],1:4])+1):nrow(xs),] + 
-            dispersing %*% matrix(1,1,n_fields)
+        # Aphids (first 4 instars apparently don't disperse)
+        disp_stages <- (sum(stage_days[clone[1,1],1:4])+1):nrow(xr)
+        xr <- dispersal(xr, disp_aphid, disp_stages-1)  # -1 to make them C++ indices
+        disp_stages <- (sum(stage_days[clone[2,1],1:4])+1):nrow(xs)
+        xs <- dispersal(xs, disp_aphid, disp_stages-1)
         
-        dispersingw <- disp_wasp * mean(yr[nrow(yr),])
-        yr[nrow(yr),] <- ((1-disp_wasp) * yr[nrow(yr),] + dispersingw)
-        
-        dispersingw <- disp_wasp * mean(ys[nrow(ys),])
-        ys[nrow(ys),] <- ((1-disp_wasp) * ys[nrow(ys),] + dispersingw)
+        # Wasps (only adults disperse)
+        disp_stages <- nrow(yr)
+        yr <- dispersal(yr, disp_wasp, disp_stages-1)
+        disp_stages <- nrow(ys)
+        ys <- dispersal(ys, disp_wasp, disp_stages-1)
         
         # X is sum of all living aphids
         Xr[t,] <- colSums(xr) + colSums(yr[1:mum_days[1],])
@@ -498,7 +463,7 @@ Xs <- out_list$Xs
 Yr <- out_list$Yr
 Ys <- out_list$Ys
 
-base_plot()
+# base_plot()
 
 
 
@@ -514,8 +479,8 @@ wasps <- as_data_frame(cbind(Ys, Yr)) %>%
     select(-1:-4) %>% 
     gather('field', 'density', 2:3, factor_key = TRUE)
 
-# axis_mult = max(aphids$density)
-axis_mult = 330
+axis_mult = max(aphids$density)
+# axis_mult = 330
 
 ggplot(aphids, aes(time)) +
     theme_classic() +
