@@ -19,135 +19,6 @@ source('parameters.R')
 
 
 
-base_plot <- function(ymult = 1) {
-    Ymax <- ymult * max(Xr+Xs)
-    min_time <- 1
-    
-    # Figure 1
-    plot(1:(max_time-min_time+1),Xr[min_time:max_time,1]+Xs[min_time:max_time,1],
-         type = 'l', col = 'dodgerblue', ylab = '', xlab = 'time', main = '')
-    lines(1:(max_time-min_time+1),Xr[min_time:max_time,2]+Xs[min_time:max_time,2],
-          col = 'dodgerblue', lty = 2)
-    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]),
-          col = 'firebrick')
-    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]),
-          col = 'firebrick', lty = 2)
-    lines(1:(max_time-min_time+1),Ymax*rowSums(Xr[min_time:max_time,])/
-              (rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])),
-          col = 'black')
-    
-    # Blue is aphid abundances
-    # Red is parasitoid abundances
-    # Black is (resistant aphids) / (total aphids)
-    # Dotted lines are field # 2 (different harvesting regime)
-}
-
-
-
-# process error for aphids, parasitized aphids, and adult parasitoids
-
-# mat X_t1 = xtr
-# mat Y_t1 = ytr
-# mat X_t = X_0r[,i]
-# mat Y_t = Y_0r[,i]
-# double sigma_x = sigma_x
-# double sigma_y = sigma_y
-# double rho = rho
-# double z = z
-# double Y_m = Y_0r[nrow(Y_0r),i]
-# uword total_stages = n_aphid_stages+n_wasp_stages
-#   Total days for living aphids (i.e., not parasitized or parasitized 
-#   but not yet a mummy):
-# uword living_aphids = n_aphid_stages + mum_days[1]
-# double sigma_d_mult = 1  # A way to scale the demographic var. (for wasps and aphids)
-
-
-# mat X_t1, mat Y_t1, mat X_t, mat Y_t, double sigma_x, double sigma_y,
-# double rho, double z, double Y_m, uword total_stages, uword living_aphids, 
-# double sigma_d_mult
-
-
-
-process_error <- function(X_t1, Y_t1, X_t, Y_t, sigma_x, sigma_y, rho, z, Y_m, 
-                          total_stages, living_aphids, sigma_d_mult = 1) {
-    
-    Se = matrix(0, total_stages, total_stages);
-    
-    if (sigma_d_mult == 0 & sigma_x == 0 & sigma_y == 0) {
-        return(list(aphids = X_t1, wasps = Y_t1));
-    }
-    
-    # Aphid (both parasitized and not) process error
-    Se[1:living_aphids,1:living_aphids] =
-        # Version from paper:
-        (sigma_x^2 + sigma_d_mult * min(0.5, 1 / abs(1 + z))) *
-        (rho * matrix(1,living_aphids,living_aphids) + (1-rho) * diag(1,living_aphids));
-        # # Version Tony sent:
-        # sigma_x^2 * (rho * matrix(1,living_aphids,living_aphids) + (1-rho) * 
-        # diag(1,living_aphids))
-    
-    # Mummy process error, turning back to zero
-    Se[(living_aphids+1):(nrow(Se)-1),(living_aphids+1):(ncol(Se)-1)] = 0;
-    Se[1:living_aphids,(living_aphids+1):(ncol(Se)-1)] = 0;
-    Se[(living_aphids+1):(nrow(Se)-1),1:living_aphids] = 0;
-    
-    # Adult parasitoid process error
-    Se[nrow(Se),ncol(Se)] = sigma_y^2 + sigma_d_mult * min(0.5, 1 / abs(1 + Y_m));
-    
-    # chol doesn't work with zeros on diagonal
-    non_zero = which(diag(Se) > 0);
-    
-    # Cholesky decomposition of Se so output has correct variance-covariance matrix
-    #   "a vector of independent normal random variables,
-    #   when multiplied by the transpose of the Cholesky deposition of [Se] will
-    #   have covariance matrix equal to [Se]."
-    chol_decomp = t(chol(Se[non_zero,non_zero]));
-    
-    # Random numbers from distribution N(0,1)
-    rnd = rnorm(length(non_zero));
-    
-    # Making each element of rnd have correct variance-covariance matrix
-    E = chol_decomp %*% rnd;
-    
-    nz_aphid = non_zero[non_zero <= nrow(X_t1)];
-    nz_wasp = non_zero[non_zero > nrow(X_t1)] - nrow(X_t1);
-    
-    X_t1_e = X_t1;
-    Y_t1_e = Y_t1;
-    
-    X_t1_e[nz_aphid,] = X_t1_e[nz_aphid,] * exp(E[1:length(nz_aphid)]);
-    Y_t1_e[nz_wasp,] = Y_t1_e[nz_wasp,] * exp(E[(length(nz_aphid)+1):nrow(E)]);
-    
-    # Because we used normal distributions to approximate demographic and environmental 
-    # stochasticity, it is possible for aphids and parasitoids to 
-    # "spontaneously appear" when the estimate of e(t) is large. To disallow this 
-    # possibility, the number of aphids and parasitized aphids in a given age class 
-    # on day t was not allowed to exceed the number in the preceding age class on 
-    # day t – 1.
-    
-    for (i in 2:length(X_t1_e)) {
-        X_t1_e[i] = min(X_t1_e[i], X_t[(i-1)]);
-        # if (X_t1_e[i] > X_t[(i-1)]) {
-        #     X_t1_e[i] = X_t[(i-1)];
-        # }
-    }
-    # Not going to the end for parasitoids bc you can have more adults than mummies
-    # bc adults stay in that stage for multiple days
-    for (i in 2:(length(Y_t1_e)-1)) {
-        Y_t1_e[i] = min(Y_t1_e[i], Y_t[(i-1)]);
-        # if (Y_t1_e[i] > Y_t[(i-1)]) {
-        #     Y_t1_e[i] = Y_t[(i-1)];
-        # }
-    }
-    
-    return(list(aphids = X_t1_e, wasps = Y_t1_e));
-}
-
-
-
-
-
-
 
 
 
@@ -245,7 +116,8 @@ HighTunnelExptSimfunct <- function(
                 yts[(mum_days[1]+1):(length(yts)-1)] <- 0
             }
             
-            # Filling in values for the next iteration (X_0r, X_0s, Y_0r, Y_0s hold time t info)
+            # Filling in values for the next iteration
+            # (X_0r, X_0s, Y_0r, Y_0s hold time t info)
             X_0r[,i] <- xtr
             X_0s[,i] <- xts
             Y_0r[,i] <- ytr
@@ -303,40 +175,9 @@ Xs <- out_list$Xs
 Yr <- out_list$Yr
 Ys <- out_list$Ys
 
-# base_plot()
+# base_p()
 
-
-
-aphids <- as_data_frame(cbind(Xr, Xs)) %>%
-    mutate(time = 1:nrow(Xs), `1` = V1+V3, `2` = V2+V4,
-           r_prop = (V1+V2)/(V1+V2+V3+V4)) %>% # <-- (resistant aphids) / (total aphids)
-    select(-1:-4) %>% 
-    gather('field', 'density', 2:3, factor_key = TRUE)
-
-wasps <- as_data_frame(cbind(Ys, Yr)) %>%
-    mutate(time = 1:nrow(Ys), `1` = (V1+V3)/2, `2` = (V2+V4)/2) %>% 
-    select(-1:-4) %>% 
-    gather('field', 'density', 2:3, factor_key = TRUE)
-
-axis_mult = max(aphids$density)
-# axis_mult = 330
-
-ggplot(aphids, aes(time)) +
-    theme_classic() +
-    theme(legend.position = c(0.01, 1), legend.direction = 'horizontal',
-          legend.justification = c('left', 'top'), legend.margin = margin(0,0,0,0),
-          legend.background = element_rect(fill = NA)) +
-    geom_line(aes(y = density, linetype = field), color = 'dodgerblue') +
-    geom_line(data = wasps, aes(y = density * axis_mult, linetype = field), 
-              color = 'firebrick') +
-    geom_line(aes(y = r_prop * axis_mult)) +
-    geom_text(data = data_frame(time = c(200, 350, 500), 
-                                y = rep(axis_mult * 1.1, 3), 
-                                lab = c('aphids', '% parasit.', '% resist.')),
-              aes(y = y, label = lab), color = c('dodgerblue', 'firebrick', 'black'),
-              hjust = c(0, 0.5, 1), vjust = 1) +
-    scale_y_continuous('aphid density', limits = c(0, axis_mult * 1.1),
-                       sec.axis = sec_axis(~ . * 100 / axis_mult, name = '%'))
+gg_p()
 
 
 

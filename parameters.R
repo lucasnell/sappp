@@ -196,3 +196,64 @@ harvest_times <- rbind(c(cycle_length * 1:n_cycles),
 #     instar_days = instar_days$high,
 #     mum_days = mum_days
 # )
+
+
+
+base_p <- function(ymult = 1) {
+    Ymax <- ymult * max(Xr[,1]+Xs[,1])
+    min_time <- 1
+    
+    # Figure 1
+    plot(1:(max_time-min_time+1),Xr[min_time:max_time,1]+Xs[min_time:max_time,1],
+         type = 'l', col = 'dodgerblue', ylab = '', xlab = 'time', main = '')
+    lines(1:(max_time-min_time+1),Xr[min_time:max_time,2]+Xs[min_time:max_time,2],
+          col = 'dodgerblue', lty = 2)
+    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]),
+          col = 'firebrick')
+    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]),
+          col = 'firebrick', lty = 2)
+    lines(1:(max_time-min_time+1),Ymax*rowSums(Xr[min_time:max_time,])/
+              (rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])),
+          col = 'black')
+    
+    # Blue is aphid abundances
+    # Red is parasitoid abundances
+    # Black is (resistant aphids) / (total aphids)
+    # Dotted lines are field # 2 (different harvesting regime)
+}
+
+
+
+
+gg_p <- function() {
+    aphids <- as_data_frame(cbind(Xr, Xs)) %>%
+        mutate(time = 1:nrow(Xs), `1` = V1+V3, `2` = V2+V4,
+               r_prop = (V1+V2)/(V1+V2+V3+V4)) %>% # <-- (resistant aphids) / (total aphids)
+        select(-1:-4) %>% 
+        gather('field', 'density', 2:3, factor_key = TRUE)
+    
+    wasps <- as_data_frame(cbind(Ys, Yr)) %>%
+        mutate(time = 1:nrow(Ys), `1` = (V1+V3)/2, `2` = (V2+V4)/2) %>% 
+        select(-1:-4) %>% 
+        gather('field', 'density', 2:3, factor_key = TRUE)
+    
+    axis_mult = max(aphids$density)
+    # axis_mult = 330
+    
+    ggplot(aphids, aes(time)) +
+        theme_classic() +
+        theme(legend.position = c(0.01, 1), legend.direction = 'horizontal',
+              legend.justification = c('left', 'top'), legend.margin = margin(0,0,0,0),
+              legend.background = element_rect(fill = NA)) +
+        geom_line(aes(y = density, linetype = field), color = 'dodgerblue') +
+        geom_line(data = wasps, aes(y = density * axis_mult, linetype = field), 
+                  color = 'firebrick') +
+        geom_line(aes(y = r_prop * axis_mult)) +
+        geom_text(data = data_frame(time = c(200, 350, 500), 
+                                    y = rep(axis_mult * 1.1, 3), 
+                                    lab = c('aphids', '% parasit.', '% resist.')),
+                  aes(y = y, label = lab), color = c('dodgerblue', 'firebrick', 'black'),
+                  hjust = c(0, 0.5, 1), vjust = 1) +
+        scale_y_continuous('aphid density', limits = c(0, axis_mult * 1.1),
+                           sec.axis = sec_axis(~ . * 100 / axis_mult, name = '%'))
+}

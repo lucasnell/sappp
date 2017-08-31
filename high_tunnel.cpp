@@ -167,6 +167,7 @@ mat dispersal(mat P_mat, double disp_rate, uvec disp_stages) {
 
 // 
 // Add process error to Y and X values
+// Note: sigma_d_mult is a way to scale demographic stochasticity
 // 
 //[[Rcpp::export]]
 List process_error(vec X_t1, vec Y_t1, vec X_t, vec Y_t, 
