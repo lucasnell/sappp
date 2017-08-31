@@ -25,7 +25,7 @@ source('classes.R')
 # columns: 1=aphid juv, 2=aphid adult
 # values 1=low growth rate, 2=high growth rate
 
-clone <- data.frame(juv = c(2, 1), adult = c(2, 2))
+clone <- data.frame(juv = c(2, 2), adult = c(1, 2))
 rownames(clone) <- c('resistant', 'susceptible')
 
 # Values dictate which rows will be selected from matrices of demographic rates below
