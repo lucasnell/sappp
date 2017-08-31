@@ -128,9 +128,9 @@ HighTunnelExptSimfunct <- function(
         # ----
         
         # Aphids (first 4 instars apparently don't disperse)
-        disp_stages <- (sum(instar_days[[clone[1,1]]][,1:4])+1):nrow(X_0r)
+        disp_stages <- (sum(instar_days[[clone[1,1]]][1:4])+1):nrow(X_0r)
         X_0r <- dispersal(X_0r, disp_aphid, disp_stages-1)  # -1 to make them C++ indices
-        disp_stages <- (sum(instar_days[[clone[2,1]]][,1:4])+1):nrow(X_0s)
+        disp_stages <- (sum(instar_days[[clone[2,1]]][1:4])+1):nrow(X_0s)
         X_0s <- dispersal(X_0s, disp_aphid, disp_stages-1)
         
         # Wasps (only adults disperse)
@@ -181,4 +181,5 @@ gg_p()
 
 
 
-base_plot()
+
+

@@ -6,7 +6,7 @@
 # 
 # # Provides functions instar_to_stage, leslie_matrix, leslie_sad, attack_probs, 
 # # parasitoid_abunds
-# Rcpp::sourceCpp('high_tunnel.cpp')
+Rcpp::sourceCpp('high_tunnel.cpp')
 
 source('classes.R')
 
@@ -42,7 +42,8 @@ n_lines <- 2
 
 
 # Number of days per instar (for low and high growth rates)
-instar_days <- list(low = cbind(2, 2, 2, 2, 19), high = cbind(1, 1, 1, 2, 23))
+instar_days <- list(low = as.integer(c(2, 2, 2, 2, 19)), 
+                    high = as.integer(c(1, 1, 1, 2, 23)))
 # Number of days for parasitized (but still living) aphids and mummies
 mum_days <- cbind(7, 3)
 
@@ -72,9 +73,9 @@ repro <- list(
 
 # Relative attack rate on the different instars from Ives et al 1999
 # `instar_to_stage` converts these values from per-instar to per-day
-rel_attack <- list(low = instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06), 
+rel_attack <- list(low = instar_to_stage(rbind(0.12, 0.27, 0.39, 0.16, 0.06), 
                                          n_aphid_stages, instar_days$low),
-                   high = instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06),
+                   high = instar_to_stage(rbind(0.12, 0.27, 0.39, 0.16, 0.06),
                                           n_aphid_stages, instar_days$high))
 
 
@@ -104,7 +105,7 @@ attack_surv <- cbind(0.9, 0.6)
 
 # resistant clones
 # ------
-leslie_r <- leslie_matrix(n_aphid_stages, instar_days[[clone[1,1]]], 
+leslie_r <- leslie_matrix(n_aphid_stages, instar_days[[clone[1,1]]],
                           surv_juv[[clone[1,1]]],
                           surv_adult[[clone[1,2]]], repro[[clone[1,2]]])
 sad_r <- leslie_sad(leslie_r)
@@ -112,7 +113,7 @@ sad_r <- leslie_sad(leslie_r)
 
 # susceptible clones
 # ------
-leslie_s <- leslie_matrix(n_aphid_stages, instar_days[[clone[2,1]]], 
+leslie_s <- leslie_matrix(n_aphid_stages, instar_days[[clone[2,1]]],
                           surv_juv[[clone[2,1]]],
                           surv_adult[[clone[2,2]]], repro[[clone[2,2]]])
 sad_s <- leslie_sad(leslie_s)

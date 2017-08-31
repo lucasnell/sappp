@@ -19,24 +19,21 @@ using namespace arma;
 // Expand from values per instar to per stage (i.e., day)
 // 
 //[[Rcpp::export]]
-mat instar_to_stage(vec stage_values, uword n_stages, mat stage_days) {
+vec instar_to_stage(vec stage_values, uword n_stages, uvec stage_days) {
 
-    uword n_lines = stage_days.n_rows, n_instars = stage_days.n_cols;
+    uword n_instars = stage_days.n_elem;
     
-    mat stage_days_cs = cumsum(stage_days, 1);
+    uvec stage_days_cs = cumsum(stage_days);
     
-    mat out(n_lines, n_stages, fill::zeros);
+    vec out(n_stages, fill::zeros);
     
     if (stage_values.n_elem != n_instars) {
-        stop("ncol in stage_days should equal length of stage_values");
+        stop("stage_days and stage_values should have the same length");
     }
     
-    for (uword i = 0; i < n_lines; i++) {
-        out(i, span(0, stage_days_cs(i,0)-1)).fill(stage_values[0]);
-        for (uword j = 1; j < n_instars; j++) {
-            out(i, span(stage_days_cs(i,j-1), stage_days_cs(i,j)-1)).fill(
-                    stage_values[j]);
-        }
+    out(span(0, stage_days_cs(0)-1)).fill(stage_values(0));
+    for (uword j = 1; j < n_instars; j++) {
+        out(span(stage_days_cs(j-1), stage_days_cs(j)-1)).fill(stage_values(j));
     }
     
     return out;
@@ -51,11 +48,11 @@ mat instar_to_stage(vec stage_values, uword n_stages, mat stage_days) {
 // Create Leslie matrix from aphid info
 // 
 //[[Rcpp::export]]
-mat leslie_matrix(int n_stages, ivec stage_days, double surv_juv, 
-                   vec surv_adult, vec repro) {
+mat leslie_matrix(uvec stage_days, double surv_juv, 
+                  vec surv_adult, vec repro, uword n_stages = 32) {
     vec tmp;
     mat LL;
-    int juv_time = accu(stage_days(span(0, (stage_days.n_elem - 2))));
+    uword juv_time = accu(stage_days(span(0, (stage_days.n_elem - 2))));
     // Age-specific survivals
     tmp = vec(n_stages - 1);
     tmp.head(juv_time).fill(surv_juv);
@@ -102,10 +99,10 @@ mat leslie_sad(mat L) {
 // If attack_surv has length < 2, it's ignored entirely
 // 
 //[[Rcpp::export]]
-mat attack_probs(double a, vec p_i, double Y_m, double x, double h, double k, 
+vec attack_probs(double a, vec p_i, double Y_m, double x, double h, double k, 
                  vec attack_surv) {
-    mat mm = (a * p_i * Y_m) / (h * x + 1);
-    mat AA = (1 + mm / k);
+    vec mm = (a * p_i * Y_m) / (h * x + 1);
+    vec AA = (1 + mm / k);
     if (attack_surv.n_elem < 2 || sum(attack_surv) == 0) {
         AA = arma::pow(AA, -k);
     } else {
