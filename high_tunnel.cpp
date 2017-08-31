@@ -98,20 +98,20 @@ mat leslie_sad(mat L) {
 
 // 
 // Equation 6 from the paper
-// Note: If resist_surv has length > 2, the 3rd+ items are ignored
-// If resist_surv has length < 2, it's ignored entirely
+// Note: If attack_surv has length > 2, the 3rd+ items are ignored
+// If attack_surv has length < 2, it's ignored entirely
 // 
 //[[Rcpp::export]]
 mat attack_probs(double a, vec p_i, double Y_m, double x, double h, double k, 
-                 vec resist_surv) {
+                 vec attack_surv) {
     mat mm = (a * p_i * Y_m) / (h * x + 1);
     mat AA = (1 + mm / k);
-    if (resist_surv.n_elem < 2 || sum(resist_surv) == 0) {
+    if (attack_surv.n_elem < 2 || sum(attack_surv) == 0) {
         AA = arma::pow(AA, -k);
     } else {
         AA = arma::pow(AA, -k) + 
-            resist_surv(0) * mm % arma::pow(AA, -k-1) + 
-            resist_surv(1) * (1-(arma::pow(AA, -k) + mm % arma::pow(AA, -k-1)));
+            attack_surv(0) * mm % arma::pow(AA, -k-1) + 
+            attack_surv(1) * (1-(arma::pow(AA, -k) + mm % arma::pow(AA, -k-1)));
     }
     return AA;
 }

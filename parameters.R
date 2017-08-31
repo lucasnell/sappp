@@ -83,7 +83,10 @@ patch <- setRefClass(
 # rows: 1=resistant, 2=susceptible
 # columns: 1=aphid juv, 2=aphid adult
 # values 1=low growth rate, 2=high growth rate
-clone <- rbind(c(2, 1), c(2, 2))
+
+clone <- data.frame(juv = c(2, 1), adult = c(2, 2))
+rownames(clone) <- c('resistant', 'susceptible')
+
 # Values dictate which rows will be selected from matrices of demographic rates below
 # (instar_days, surv_juv, surv_adult, repro)
 
@@ -97,45 +100,41 @@ n_aphid_stages <- 32
 n_lines <- 2
 
 
-# Number of days per instar
-instar_days <- rbind(c(2, 2, 2, 2, 19), c(1, 1, 1, 2, 23))
+# Number of days per instar (for low and high growth rates)
+instar_days <- list(low = cbind(2, 2, 2, 2, 19), high = cbind(1, 1, 1, 2, 23))
 # Number of days for parasitized (but still living) aphids and mummies
 mum_days <- cbind(7, 3)
 
 n_wasp_stages <- sum(mum_days) + 1
 
 # juvenile survival
-surv_juv <- rbind(0.9745, 0.9849)
+surv_juv <- list(low = 0.9745, high = 0.9849)
 
 # adult survival
-surv_adult <- rbind(
-    c(1.0000, 0.9949, 0.9818, 0.9534, 0.8805, 0.8367, 0.8532, 0.8786, 0.8823, 
-      0.8748, 0.8636, 0.8394, 0.8118, 0.8096, 0.8240, 0.8333, 0.7544, 0.5859, 
-      0.4155, 0.2216),
-    c(1.0000, 0.9986, 0.9951, 0.9874, 0.9675, 0.9552, 0.9550, 0.9549, 0.9462, 
-      0.8992, 0.8571, 0.8408, 0.8281, 0.8062, 0.7699, 0.7500, 0.7559, 0.7649, 
-      0.7240, 0.4367))
-surv_adult <- cbind(surv_adult, matrix(0,n_lines,180))
+surv_adult <- list(
+    low = rbind(c(1.0000, 0.9949, 0.9818, 0.9534, 0.8805, 0.8367, 0.8532, 0.8786, 
+                  0.8823, 0.8748, 0.8636, 0.8394, 0.8118, 0.8096, 0.8240, 0.8333, 
+                  0.7544, 0.5859, 0.4155, 0.2216, rep(0, 180))),
+    high = rbind(c(1.0000, 0.9986, 0.9951, 0.9874, 0.9675, 0.9552, 0.9550, 0.9549, 
+                   0.9462, 0.8992, 0.8571, 0.8408, 0.8281, 0.8062, 0.7699, 0.7500, 
+                   0.7559, 0.7649, 0.7240, 0.4367, rep(0, 180))))
 
 # reproduction
-repro <- rbind(
-    c(0, 2.5925, 4.4312, 5.1403, 5.5190, 5.6633, 5.6010, 5.4577, 5.2904, 5.0613, 4.6970, 
-      3.3577, 1.5946, 1.0817, 0.9666, 0.8333, 0.4689, 0.0709, 
-      0, 0, 0, 0),
-    c(0, 3.1975, 5.4563, 6.2996, 6.7372, 6.9030, 6.8210, 6.6100, 6.1962, 5.1653, 4.1837, 
-      3.6029, 3.1023, 2.4799, 1.6909, 1.1750, 1.0148, 0.9096, 
-      0.7821, 0.6430, 0.5000, 0.3531)
-)
-repro <- cbind(repro, matrix(0,n_lines,178))
-
+repro <- list(
+    low = rbind(c(0, 2.5925, 4.4312, 5.1403, 5.5190, 5.6633, 5.6010, 5.4577, 5.2904, 
+                  5.0613, 4.6970, 3.3577, 1.5946, 1.0817, 0.9666, 0.8333, 0.4689, 
+                  0.0709, 0, 0, 0, 0, rep(0, 178))),
+    high = rbind(c(0, 3.1975, 5.4563, 6.2996, 6.7372, 6.9030, 6.8210, 6.6100, 
+                   6.1962, 5.1653, 4.1837, 3.6029, 3.1023, 2.4799, 1.6909, 1.1750, 
+                   1.0148, 0.9096, 0.7821, 0.6430, 0.5000, 0.3531, rep(0, 178))))
 
 
 # Relative attack rate on the different instars from Ives et al 1999
 # `instar_to_stage` converts these values from per-instar to per-day
-rel_attack <- instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06), 
-                              n_aphid_stages, instar_days)
-
-
+rel_attack <- list(low = instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06), 
+                                         n_aphid_stages, instar_days$low),
+                   high = instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06),
+                                          n_aphid_stages, instar_days$high))
 
 
 sex_ratio <- 0.5
@@ -154,8 +153,7 @@ rho <- 2 / (1 + exp(-sigma_y)) - 1  # environmental correlation among instars (r
 
 # These are the survivals of singly attacked and multiply attacked
 # resistant aphids
-resist_surv <- cbind(0.9, 0.6)
-
+attack_surv <- cbind(0.9, 0.6)
 
 
 
@@ -165,16 +163,17 @@ resist_surv <- cbind(0.9, 0.6)
 
 # resistant clones
 # ------
-leslie_r <- leslie_matrix(n_aphid_stages, instar_days[clone[1,1],], surv_juv[clone[1,1]],
-                          surv_adult[clone[1,2],], repro[clone[1,2],])
+leslie_r <- leslie_matrix(n_aphid_stages, instar_days[[clone[1,1]]], 
+                          surv_juv[[clone[1,1]]],
+                          surv_adult[[clone[1,2]]], repro[[clone[1,2]]])
 sad_r <- leslie_sad(leslie_r)
 
 
 # susceptible clones
 # ------
-leslie_s <- leslie_matrix(n_aphid_stages, instar_days[clone[2,1],], surv_juv[clone[2,1]],
-                          surv_adult[clone[2,2],], repro[clone[2,2],])
-
+leslie_s <- leslie_matrix(n_aphid_stages, instar_days[[clone[2,1]]], 
+                          surv_juv[[clone[2,1]]],
+                          surv_adult[[clone[2,2]]], repro[[clone[2,2]]])
 sad_s <- leslie_sad(leslie_s)
 
 

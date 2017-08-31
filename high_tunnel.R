@@ -16,13 +16,11 @@ Rcpp::sourceCpp('high_tunnel.cpp')
 
 source('parameters.R')
 
-sigma_d_mult = 1
 
 
 
-base_plot <- function() {
-    Ymax <- 1.2 * max(Xr+Xs)
-    Ymax2 <- 1.2 * max(Xr+Xs)
+base_plot <- function(ymult = 1) {
+    Ymax <- ymult * max(Xr+Xs)
     min_time <- 1
     
     # Figure 1
@@ -30,11 +28,11 @@ base_plot <- function() {
          type = 'l', col = 'dodgerblue', ylab = '', xlab = 'time', main = '')
     lines(1:(max_time-min_time+1),Xr[min_time:max_time,2]+Xs[min_time:max_time,2],
           col = 'dodgerblue', lty = 2)
-    lines(1:(max_time-min_time+1),Ymax2 * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]),
+    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]),
           col = 'firebrick')
-    lines(1:(max_time-min_time+1),Ymax2 * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]),
+    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]),
           col = 'firebrick', lty = 2)
-    lines(1:(max_time-min_time+1),Ymax2*rowSums(Xr[min_time:max_time,])/
+    lines(1:(max_time-min_time+1),Ymax*rowSums(Xr[min_time:max_time,])/
               (rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])),
           col = 'black')
     
@@ -156,7 +154,7 @@ process_error <- function(X_t1, Y_t1, X_t, Y_t, sigma_x, sigma_y, rho, z, Y_m,
 
 
 HighTunnelExptSimfunct <- function(
-    X_0r,X_0s,Y_0r,Y_0s,a,resist_surv,K,K_y,k,h,s_y,
+    X_0r,X_0s,Y_0r,Y_0s,a,attack_surv,K,K_y,k,h,s_y,
     sigma_x,sigma_y,rho,sigma_d_mult,
     # sm,
     max_time,n_fields,harvest_surv,
@@ -172,8 +170,8 @@ HighTunnelExptSimfunct <- function(
     Ys <- matrix(0, max_time, n_fields)
     
     # Leslie matrices for resistant and susceptible aphids
-    LLr <- leslie_r  # Matrix(leslie_r, sparse = TRUE)
-    LLs <- leslie_s  # Matrix(leslie_s, sparse = TRUE)
+    LLr <- leslie_r
+    LLs <- leslie_s
     
     for (t in 1:max_time) {
         for (i in 1:n_fields) {
@@ -181,17 +179,23 @@ HighTunnelExptSimfunct <- function(
             # Total number of living aphids (z in the paper)
             z <- sum(c(X_0r[,i], X_0s[,i], Y_0r[1:mum_days[1], i], Y_0s[1:mum_days[1], i]))
             
+            # Total number of non-parasitized aphids (x in paper)
+            x <- sum(c(X_0r[,i], X_0s[,i]))
+            
             # Equivalent to S(z(t)) and S_y(z(t)) [no idea why equations are different]
             St <- 1 / (1 + K * z)
             S_yt <- 1 / (1 + K_y * z)
             
+            # Total number of adult wasps
+            Y_m <- Y_0r[nrow(Y_0r),i] + Y_0s[nrow(Y_0s),i]
+            
             # Matrices of attack probabilities using equation 6 from paper
-            As <- attack_probs(a = a, p_i = rel_attack[clone[1,1],], 
-                               Y_m = Y_0r[nrow(Y_0r),i] + Y_0s[nrow(Y_0s),i], 
-                               x = z, h = h, k = k, resist_surv = numeric(0))
-            Ar <- attack_probs(a = a, p_i = rel_attack[clone[2,1],], 
-                               Y_m = Y_0r[nrow(Y_0r),i] + Y_0s[nrow(Y_0s),i], 
-                               x = z, h = h, k = k, resist_surv = resist_surv)
+            Ar <- attack_probs(a = a, p_i = rel_attack[[clone[1,1]]], 
+                               Y_m = Y_m, x = x, h = h, k = k, 
+                               attack_surv = attack_surv)
+            As <- attack_probs(a = a, p_i = rel_attack[[clone[2,1]]], 
+                               Y_m = Y_m, x = x, h = h, k = k, 
+                               attack_surv = numeric(0))
             
             # X(t+1) (first line of equation 2; pred_rate was added after paper)
             xtr <- (pred_rate * St * Ar) * as.matrix(LLr %*% X_0r[,i])
@@ -199,11 +203,11 @@ HighTunnelExptSimfunct <- function(
             
             # Filling in column of parasitoid stage abundances
             ytr <- parasitoid_abunds(S_y_zt = S_yt, A = Ar, L = LLr, X = X_0r[,i], 
-                                     Y_t = Y_0r[,i], s_i = surv_juv[clone[1,1]], 
+                                     Y_t = Y_0r[,i], s_i = surv_juv[[clone[1,1]]], 
                                      s_y = s_y, m_1 = mum_days[1], sex_ratio = sex_ratio, 
                                      pred_rate = pred_rate)
             yts <- parasitoid_abunds(S_y_zt = S_yt, A = As, L = LLs, X = X_0s[,i], 
-                                     Y_t = Y_0s[,i], s_i = surv_juv[clone[2,1]], 
+                                     Y_t = Y_0s[,i], s_i = surv_juv[[clone[2,1]]], 
                                      s_y = s_y, m_1 = mum_days[1], sex_ratio = sex_ratio, 
                                      pred_rate = pred_rate)
             
@@ -252,9 +256,9 @@ HighTunnelExptSimfunct <- function(
         # ----
         
         # Aphids (first 4 instars apparently don't disperse)
-        disp_stages <- (sum(instar_days[clone[1,1],1:4])+1):nrow(X_0r)
+        disp_stages <- (sum(instar_days[[clone[1,1]]][,1:4])+1):nrow(X_0r)
         X_0r <- dispersal(X_0r, disp_aphid, disp_stages-1)  # -1 to make them C++ indices
-        disp_stages <- (sum(instar_days[clone[2,1],1:4])+1):nrow(X_0s)
+        disp_stages <- (sum(instar_days[[clone[2,1]]][,1:4])+1):nrow(X_0s)
         X_0s <- dispersal(X_0s, disp_aphid, disp_stages-1)
         
         # Wasps (only adults disperse)
@@ -283,11 +287,11 @@ HighTunnelExptSimfunct <- function(
 
 
 set.seed(60253704)
-out_list <- HighTunnelExptSimfunct(X_0r,X_0s,Y_0r,Y_0s,a,resist_surv,K,K_y,k,h,s_y,
-                                   sigma_x,sigma_y,rho,sigma_d_mult, # <- Full error
+out_list <- HighTunnelExptSimfunct(X_0r,X_0s,Y_0r,Y_0s,a,attack_surv,K,K_y,k,h,s_y,
+                                   # sigma_x,sigma_y,rho,1, # <- Full error
                                    # 0,0,0,1,  # <- No environmental error
                                    # sigma_x,sigma_y,rho,0, # <- No demographic error
-                                   # 0,0,0,0, # <- No error
+                                   0,0,0,0, # <- No error
                                    max_time,n_fields,harvest_surv,harvest_times,disp_aphid,
                                    disp_wasp,pred_rate,
                                    n_aphid_stages, n_wasp_stages, instar_days, mum_days, 
