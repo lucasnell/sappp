@@ -170,34 +170,76 @@ harvest_times <- rbind(c(cycle_length * 1:n_cycles),
 
 
 
-# 
-# # Resistant clone info
-# line_r <- aphid_const$new(
-#     leslie = ,
-#     rel_attack = ,
-#     X_0 = ,
-#     Y_0 = ,
-#     sex_ratio = sex_ratio,
-#     a = a,
-#     K = K,
-#     K_y = K_y,
-#     k = k,
-#     h = h,
-#     s_y = s_y,
-#     sigma_x = sigma_x,
-#     sigma_y = sigma_y,
-#     rho = rho,
-#     attack_surv = resist_surv,
-#     harvest_surv = harvest_surv,
-#     disp_aphid = disp_aphid,
-#     disp_wasp = disp_wasp,
-#     pred_rate = pred_rate,
-#     n_aphid_stages = n_aphid_stages,
-#     n_wasp_stages = n_wasp_stages,
-#     instar_days = instar_days$high,
-#     mum_days = mum_days
-# )
+# leslie_r <- leslie_matrix(n_aphid_stages, instar_days$high,
+#                           surv_juv$high, surv_adult$high, repro$low)
+# prop_resist * init_x * leslie_sad(leslie_r)
 
+
+# =====================================================================================
+# =====================================================================================
+
+#       APHID LINES
+
+# =====================================================================================
+# =====================================================================================
+
+# -------
+# Resistant aphid line info
+# -------
+res_line <- aphid_const$new(
+    leslie = leslie_matrix(instar_days$high, surv_juv$high, surv_adult$high, repro$low),
+    rel_attack = rel_attack$high,
+    a = a, K = K, K_y = K_y, k = k, h = h, s_y = s_y, sigma_x = sigma_x, 
+    sigma_y = sigma_y, rho = rho,
+    disp_stages = (sum(instar_days[[clone[2,1]]][1:4])+1):32, 
+    mum_days = mum_days, 
+    aphid_density_0 = prop_resist * init_x,
+    attack_surv = attack_surv)
+res_line
+
+
+
+
+# -------
+# Susceptible aphid line info
+# -------
+# Difference is no resistance, higher reproduction, higher starting density
+sus_line <- aphid_const$new(
+    leslie = leslie_matrix(instar_days$high, surv_juv$high, surv_adult$high, repro$high),
+    rel_attack = rel_attack$high,
+    a = a, K = K, K_y = K_y, k = k, h = h, s_y = s_y, sigma_x = sigma_x, 
+    sigma_y = sigma_y, rho = rho,
+    disp_stages = (sum(instar_days[[clone[2,1]]][1:4])+1):32, 
+    mum_days = mum_days, 
+    aphid_density_0 = (1 - prop_resist) * init_x)
+sus_line
+
+
+
+
+
+
+# =====================================================================================
+# =====================================================================================
+
+#       FIELDS
+
+# =====================================================================================
+# =====================================================================================
+
+
+
+
+
+
+
+# ====================================================================================
+# ====================================================================================
+
+# Plotting
+
+# ====================================================================================
+# ====================================================================================
 
 
 base_p <- function(ymult = 1) {
