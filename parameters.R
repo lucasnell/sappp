@@ -1,73 +1,14 @@
+# 
+# library(dplyr)
+# library(tidyr)
+# library(ggplot2)
+# # library(Matrix) # for sparse matrices
+# 
+# # Provides functions instar_to_stage, leslie_matrix, leslie_sad, attack_probs, 
+# # parasitoid_abunds
+# Rcpp::sourceCpp('high_tunnel.cpp')
 
-
-# Info about an aphid line (and wasps that parasitize them)
-aphid_line <- setRefClass(
-    
-    'aphid_line', 
-    
-    fields = list(
-        # --------
-        # Constant info
-        # --------
-        leslie = 'matrix',          # Leslie matrix with survival and reproduction
-        rel_attack = 'numeric',     # relative wasp attack rates by aphid stage
-        X_0 = 'numeric',            # initial aphid abundances by stage
-        Y_0 = 'numeric',            # initial wasp abundances by stage
-        sex_ratio = 'numeric',      # proportion female
-        a = 'numeric',              # overall parasitoid attack rate
-        K = 'numeric',              # aphid density dependence
-        K_y = 'numeric',            # parasitized aphid density dependence
-        k = 'numeric',              # aggregation parameter of the nbinom distribution
-        h = 'numeric',              # parasitoid attack rate handling time
-        s_y = 'numeric',            # parasitoid adult daily survival
-        sigma_x = 'numeric',        # environmental standard deviation for aphids
-        sigma_y = 'numeric',        # environmental standard deviation for parasitoids
-        rho = 'numeric',            # environmental correlation among instars
-        attack_surv = 'numeric',    # survival rates of singly & multiply attacked aphids
-        harvest_surv = 'numeric',   # survival rate for aphids during a harvest
-        disp_aphid = 'numeric',     # dispersal rate for aphids
-        disp_wasp = 'numeric',      # dispersal rate for wasps
-        pred_rate = 'numeric',      # predation on aphids and mummies
-        n_aphid_stages = 'integer', # number of aphid stages (i.e., days)
-        n_wasp_stages = 'integer',  # number of wasp stages (i.e., days)
-        instar_days = 'integer',    # number of days per aphid instar
-        mum_days = 'integer',       # number of days per mummy stage (aphid alive & dead)
-        
-        # --------
-        # Changing info
-        # --------
-        X_t = 'numeric',            # Aphid density at time t
-        X_t1 = 'numeric',           # Aphid density at time t+1
-        Y_t = 'numeric',            # Wasp density at time t
-        Y_t1 = 'numeric',           # Wasp density at time t+1
-        A = 'numeric'               # Attack probabilities at time t+1
-    )
-)
-
-# Info about a patch
-patch <- setRefClass(
-    
-    'patch', 
-    
-    fields = list(
-        # --------
-        # Constant info
-        # --------
-        harvest_times = 'integer',  # times when harvesting occurs
-        max_time = 'integer',       # number of time points to simulate
-        
-        # --------
-        # Changing info
-        # --------
-        z = 'numeric',              # Sum of all living aphids at time t
-        S = 'numeric',              # Density dependence for aphids
-        S_y = 'numeric'             # Density dependence for wasps
-    )
-)
-
-
-
-
+source('classes.R')
 
 
 
@@ -226,3 +167,32 @@ harvest_times <- rbind(c(cycle_length * 1:n_cycles),
                        c(cycle_length * 1, cycle_length * (2:(n_cycles-1)) - cycle_length/2,
                          cycle_length * n_cycles))
 
+
+
+# 
+# # Resistant clone info
+# line_r <- aphid_const$new(
+#     leslie = ,
+#     rel_attack = ,
+#     X_0 = ,
+#     Y_0 = ,
+#     sex_ratio = sex_ratio,
+#     a = a,
+#     K = K,
+#     K_y = K_y,
+#     k = k,
+#     h = h,
+#     s_y = s_y,
+#     sigma_x = sigma_x,
+#     sigma_y = sigma_y,
+#     rho = rho,
+#     attack_surv = resist_surv,
+#     harvest_surv = harvest_surv,
+#     disp_aphid = disp_aphid,
+#     disp_wasp = disp_wasp,
+#     pred_rate = pred_rate,
+#     n_aphid_stages = n_aphid_stages,
+#     n_wasp_stages = n_wasp_stages,
+#     instar_days = instar_days$high,
+#     mum_days = mum_days
+# )
