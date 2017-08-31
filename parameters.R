@@ -1,5 +1,77 @@
 
 
+# Info about an aphid line (and wasps that parasitize them)
+aphid_line <- setRefClass(
+    
+    'aphid_line', 
+    
+    fields = list(
+        # --------
+        # Constant info
+        # --------
+        leslie = 'matrix',          # Leslie matrix with survival and reproduction
+        rel_attack = 'numeric',     # relative wasp attack rates by aphid stage
+        X_0 = 'numeric',            # initial aphid abundances by stage
+        Y_0 = 'numeric',            # initial wasp abundances by stage
+        sex_ratio = 'numeric',      # proportion female
+        a = 'numeric',              # overall parasitoid attack rate
+        K = 'numeric',              # aphid density dependence
+        K_y = 'numeric',            # parasitized aphid density dependence
+        k = 'numeric',              # aggregation parameter of the nbinom distribution
+        h = 'numeric',              # parasitoid attack rate handling time
+        s_y = 'numeric',            # parasitoid adult daily survival
+        sigma_x = 'numeric',        # environmental standard deviation for aphids
+        sigma_y = 'numeric',        # environmental standard deviation for parasitoids
+        rho = 'numeric',            # environmental correlation among instars
+        attack_surv = 'numeric',    # survival rates of singly & multiply attacked aphids
+        harvest_surv = 'numeric',   # survival rate for aphids during a harvest
+        disp_aphid = 'numeric',     # dispersal rate for aphids
+        disp_wasp = 'numeric',      # dispersal rate for wasps
+        pred_rate = 'numeric',      # predation on aphids and mummies
+        n_aphid_stages = 'integer', # number of aphid stages (i.e., days)
+        n_wasp_stages = 'integer',  # number of wasp stages (i.e., days)
+        instar_days = 'integer',    # number of days per aphid instar
+        mum_days = 'integer',       # number of days per mummy stage (aphid alive & dead)
+        
+        # --------
+        # Changing info
+        # --------
+        X_t = 'numeric',            # Aphid density at time t
+        X_t1 = 'numeric',           # Aphid density at time t+1
+        Y_t = 'numeric',            # Wasp density at time t
+        Y_t1 = 'numeric',           # Wasp density at time t+1
+        A = 'numeric'               # Attack probabilities at time t+1
+    )
+)
+
+# Info about a patch
+patch <- setRefClass(
+    
+    'patch', 
+    
+    fields = list(
+        # --------
+        # Constant info
+        # --------
+        harvest_times = 'integer',  # times when harvesting occurs
+        max_time = 'integer',       # number of time points to simulate
+        
+        # --------
+        # Changing info
+        # --------
+        z = 'numeric',              # Sum of all living aphids at time t
+        S = 'numeric',              # Density dependence for aphids
+        S_y = 'numeric'             # Density dependence for wasps
+    )
+)
+
+
+
+
+
+
+
+
 # NOTE: The code is set up for 2 clones that have different life histories.
 # The life histories are taken from lab experiments and correspond to
 # demographic parameters at 20 and 27 C. See Meisner et al. 2014.
@@ -13,7 +85,7 @@
 # values 1=low growth rate, 2=high growth rate
 clone <- rbind(c(2, 1), c(2, 2))
 # Values dictate which rows will be selected from matrices of demographic rates below
-# (stage_days, surv_juv, surv_adult, repro)
+# (instar_days, surv_juv, surv_adult, repro)
 
 
 
@@ -26,7 +98,7 @@ n_lines <- 2
 
 
 # Number of days per instar
-stage_days <- rbind(c(2, 2, 2, 2, 19), c(1, 1, 1, 2, 23))
+instar_days <- rbind(c(2, 2, 2, 2, 19), c(1, 1, 1, 2, 23))
 # Number of days for parasitized (but still living) aphids and mummies
 mum_days <- cbind(7, 3)
 
@@ -61,7 +133,7 @@ repro <- cbind(repro, matrix(0,n_lines,178))
 # Relative attack rate on the different instars from Ives et al 1999
 # `instar_to_stage` converts these values from per-instar to per-day
 rel_attack <- instar_to_stage(cbind(0.12, 0.27, 0.39, 0.16, 0.06), 
-                              n_aphid_stages, stage_days)
+                              n_aphid_stages, instar_days)
 
 
 
@@ -80,14 +152,6 @@ sigma_y <- 0.35  # 0  # environmental standard deviation for parasitoids (sigma_
 rho <- 2 / (1 + exp(-sigma_y)) - 1  # environmental correlation among instars (rho; 1.0)
 
 
-
-
-# not used at all:
-# mum_detect <- 0.3923
-
-# For measurement error part:
-# sm <- 33.5455
-
 # These are the survivals of singly attacked and multiply attacked
 # resistant aphids
 resist_surv <- cbind(0.9, 0.6)
@@ -101,14 +165,14 @@ resist_surv <- cbind(0.9, 0.6)
 
 # resistant clones
 # ------
-leslie_r <- leslie_matrix(n_aphid_stages, stage_days[clone[1,1],], surv_juv[clone[1,1]],
+leslie_r <- leslie_matrix(n_aphid_stages, instar_days[clone[1,1],], surv_juv[clone[1,1]],
                           surv_adult[clone[1,2],], repro[clone[1,2],])
 sad_r <- leslie_sad(leslie_r)
 
 
 # susceptible clones
 # ------
-leslie_s <- leslie_matrix(n_aphid_stages, stage_days[clone[2,1],], surv_juv[clone[2,1]],
+leslie_s <- leslie_matrix(n_aphid_stages, instar_days[clone[2,1],], surv_juv[clone[2,1]],
                           surv_adult[clone[2,2],], repro[clone[2,2],])
 
 sad_s <- leslie_sad(leslie_s)
@@ -123,8 +187,8 @@ sad_s <- leslie_sad(leslie_s)
 # number of fields
 n_fields <- 2
 
-# kill rate at harvesting
-kill <- 0.05
+# survival rate at harvesting
+harvest_surv <- 0.05
 
 # dispersal rates between fields for aphids, adult wasps
 disp_aphid <- 0.05
@@ -150,12 +214,12 @@ prop_resist <- 0.05
 # =============================================
 
 # Initial densities of aphids by stage
-xr <- prop_resist * init_x * sad_r %*% matrix(1,1,n_fields)
-xs <- (1-prop_resist) * init_x * sad_s %*% matrix(1,1,n_fields)
+X_0r <- prop_resist * init_x * sad_r %*% matrix(1,1,n_fields)
+X_0s <- (1-prop_resist) * init_x * sad_s %*% matrix(1,1,n_fields)
 
 # Initial parasitoid densities by stage (starting with no parasitized aphids or mummies)
-yr <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
-ys <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
+Y_0r <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
+Y_0s <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
 
 # Setting total time (days) and times for harvesting
 max_time <- cycle_length * (1 + n_cycles)

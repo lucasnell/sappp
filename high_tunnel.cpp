@@ -95,17 +95,19 @@ mat leslie_sad(mat L) {
 }
 
 
-
+// 
 // Equation 6 from the paper
+// Note: If resist_surv has length > 2, the 3rd+ items are ignored
+// If resist_surv has length < 2, it's ignored entirely
+// 
 //[[Rcpp::export]]
 mat attack_probs(double a, vec p_i, double Y_m, double x, double h, double k, 
                  vec resist_surv) {
     mat mm = (a * p_i * Y_m) / (h * x + 1);
     mat AA = (1 + mm / k);
-    if (resist_surv.n_elem == 0) {
+    if (resist_surv.n_elem < 2 || sum(resist_surv) == 0) {
         AA = arma::pow(AA, -k);
     } else {
-        if (resist_surv.n_elem != 2) stop("resist_surv should be of length 2");
         AA = arma::pow(AA, -k) + 
             resist_surv(0) * mm % arma::pow(AA, -k-1) + 
             resist_surv(1) * (1-(arma::pow(AA, -k) + mm % arma::pow(AA, -k-1)));
@@ -159,3 +161,58 @@ mat dispersal(mat P_mat, double disp_rate, uvec disp_stages) {
     }
     return(Pm);
 }
+
+
+
+
+
+
+
+
+/*
+ * WORKING WITH S4 OBJECTS:
+ */
+
+// // [[Rcpp::export]]
+// void rcpp_s4(S4 in_person){
+//     
+//     // // Creating an object of Person class
+//     // S4 x("Person");
+//     // 
+//     // // Setting values to the slots
+//     // x.slot("name")  = "Sewall Wright";
+//     // x.slot("birth") = Date("1889-12-21");
+//     
+//     string tmp = in_person.slot("name");
+//     Rcout << tmp << endl;
+//     Date tmp2 = in_person.slot("birth");
+//     Rcout << tmp2 << endl;
+//     
+//     return;
+// }
+
+
+/*
+ * WORKING WITH REFERENCE-CLASS OBJECTS:
+ */
+
+// // [[Rcpp::export]]
+// void rcpp_ref(Reference& in_person){
+// 
+//     // // Creating an object of Person class
+//     // Reference x("person");
+//     //
+//     // // Setting values to the slots
+//     // x.field("name")  = "Sewall Wright";
+//     // x.field("birth") = Date("1889-12-21");
+//     
+//     // This will permanently change in_person's name
+//     in_person.field("name") = "willy";
+// 
+//     string tmp = in_person.field("name");
+//     Rcout << tmp << endl;
+//     Date tmp2 = in_person.field("birth");
+//     Rcout << tmp2 << endl;
+// 
+//     return;
+// }

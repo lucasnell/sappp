@@ -14,7 +14,10 @@ library(ggplot2)
 # parasitoid_abunds
 Rcpp::sourceCpp('high_tunnel.cpp')
 
-source('parameters.R')
+# source('parameters.R')
+
+
+
 
 base_plot <- function() {
     Ymax <- 1.2 * max(Xr+Xs)
@@ -155,7 +158,7 @@ HighTunnelExptSimfunct <- function(
     # sm,
     max_time,n_fields,kill,
     harvest_times,disp_aphid,disp_wasp,pred_rate,
-    n_aphid_stages, n_wasp_stages, stage_days, mum_days, surv_juv, surv_adult,
+    n_aphid_stages, n_wasp_stages, instar_days, mum_days, surv_juv, surv_adult,
     rel_attack, sex_ratio, leslie_r, leslie_s, clone) {
     
     # Storing aphid (X) and wasp (Y) for resistant (r) and susceptible (s) clones in 
@@ -247,9 +250,9 @@ HighTunnelExptSimfunct <- function(
         # ----
         
         # Aphids (first 4 instars apparently don't disperse)
-        disp_stages <- (sum(stage_days[clone[1,1],1:4])+1):nrow(xr)
+        disp_stages <- (sum(instar_days[clone[1,1],1:4])+1):nrow(xr)
         xr <- dispersal(xr, disp_aphid, disp_stages-1)  # -1 to make them C++ indices
-        disp_stages <- (sum(stage_days[clone[2,1],1:4])+1):nrow(xs)
+        disp_stages <- (sum(instar_days[clone[2,1],1:4])+1):nrow(xs)
         xs <- dispersal(xs, disp_aphid, disp_stages-1)
         
         # Wasps (only adults disperse)
@@ -286,7 +289,7 @@ out_list <- HighTunnelExptSimfunct(xr,xs,yr,ys,a,resist_surv,K,K_y,k,h,s_y,
                                    # 0,0,0,0, # <- No error
                                    max_time,n_fields,kill,harvest_times,disp_aphid,
                                    disp_wasp,pred_rate,
-                                   n_aphid_stages, n_wasp_stages, stage_days, mum_days, 
+                                   n_aphid_stages, n_wasp_stages, instar_days, mum_days, 
                                    surv_juv, surv_adult, 
                                    rel_attack, sex_ratio, leslie_r, leslie_s, clone)
 # Assigning out_list values to global ones for objects Xr, Xs, Yr, Ys
