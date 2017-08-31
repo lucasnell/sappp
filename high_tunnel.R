@@ -14,8 +14,9 @@ library(ggplot2)
 # parasitoid_abunds
 Rcpp::sourceCpp('high_tunnel.cpp')
 
-# source('parameters.R')
+source('parameters.R')
 
+sigma_d_mult = 1
 
 
 
@@ -49,13 +50,13 @@ base_plot <- function() {
 
 # mat X_t1 = xtr
 # mat Y_t1 = ytr
-# mat X_t = xr[,i]
-# mat Y_t = yr[,i]
+# mat X_t = X_0r[,i]
+# mat Y_t = Y_0r[,i]
 # double sigma_x = sigma_x
 # double sigma_y = sigma_y
 # double rho = rho
 # double z = z
-# double Y_m = yr[nrow(yr),i]
+# double Y_m = Y_0r[nrow(Y_0r),i]
 # uword total_stages = n_aphid_stages+n_wasp_stages
 #   Total days for living aphids (i.e., not parasitized or parasitized 
 #   but not yet a mummy):
@@ -64,7 +65,9 @@ base_plot <- function() {
 
 
 # mat X_t1, mat Y_t1, mat X_t, mat Y_t, double sigma_x, double sigma_y,
-# double rho, double z, double Y_m, uword total_stages, uword living_aphid
+# double rho, double z, double Y_m, uword total_stages, uword living_aphids, 
+# double sigma_d_mult
+
 
 
 process_error <- function(X_t1, Y_t1, X_t, Y_t, sigma_x, sigma_y, rho, z, Y_m, 
@@ -153,10 +156,10 @@ process_error <- function(X_t1, Y_t1, X_t, Y_t, sigma_x, sigma_y, rho, z, Y_m,
 
 
 HighTunnelExptSimfunct <- function(
-    xr,xs,yr,ys,a,resist_surv,K,K_y,k,h,s_y,
+    X_0r,X_0s,Y_0r,Y_0s,a,resist_surv,K,K_y,k,h,s_y,
     sigma_x,sigma_y,rho,sigma_d_mult,
     # sm,
-    max_time,n_fields,kill,
+    max_time,n_fields,harvest_surv,
     harvest_times,disp_aphid,disp_wasp,pred_rate,
     n_aphid_stages, n_wasp_stages, instar_days, mum_days, surv_juv, surv_adult,
     rel_attack, sex_ratio, leslie_r, leslie_s, clone) {
@@ -174,10 +177,9 @@ HighTunnelExptSimfunct <- function(
     
     for (t in 1:max_time) {
         for (i in 1:n_fields) {
-            # t=1;i=1
-            
+
             # Total number of living aphids (z in the paper)
-            z <- sum(c(xr[,i], xs[,i], yr[1:mum_days[1], i], ys[1:mum_days[1], i]))
+            z <- sum(c(X_0r[,i], X_0s[,i], Y_0r[1:mum_days[1], i], Y_0s[1:mum_days[1], i]))
             
             # Equivalent to S(z(t)) and S_y(z(t)) [no idea why equations are different]
             St <- 1 / (1 + K * z)
@@ -185,31 +187,31 @@ HighTunnelExptSimfunct <- function(
             
             # Matrices of attack probabilities using equation 6 from paper
             As <- attack_probs(a = a, p_i = rel_attack[clone[1,1],], 
-                               Y_m = yr[nrow(yr),i] + ys[nrow(ys),i], 
+                               Y_m = Y_0r[nrow(Y_0r),i] + Y_0s[nrow(Y_0s),i], 
                                x = z, h = h, k = k, resist_surv = numeric(0))
             Ar <- attack_probs(a = a, p_i = rel_attack[clone[2,1],], 
-                               Y_m = yr[nrow(yr),i] + ys[nrow(ys),i], 
+                               Y_m = Y_0r[nrow(Y_0r),i] + Y_0s[nrow(Y_0s),i], 
                                x = z, h = h, k = k, resist_surv = resist_surv)
             
             # X(t+1) (first line of equation 2; pred_rate was added after paper)
-            xtr <- (pred_rate * St * Ar) * as.matrix(LLr %*% xr[,i])
-            xts <- (pred_rate * St * As) * as.matrix(LLs %*% xs[,i])
+            xtr <- (pred_rate * St * Ar) * as.matrix(LLr %*% X_0r[,i])
+            xts <- (pred_rate * St * As) * as.matrix(LLs %*% X_0s[,i])
             
             # Filling in column of parasitoid stage abundances
-            ytr <- parasitoid_abunds(S_y_zt = S_yt, A = Ar, L = LLr, X = xr[,i], 
-                                     Y_t = yr[,i], s_i = surv_juv[clone[1,1]], 
+            ytr <- parasitoid_abunds(S_y_zt = S_yt, A = Ar, L = LLr, X = X_0r[,i], 
+                                     Y_t = Y_0r[,i], s_i = surv_juv[clone[1,1]], 
                                      s_y = s_y, m_1 = mum_days[1], sex_ratio = sex_ratio, 
                                      pred_rate = pred_rate)
-            yts <- parasitoid_abunds(S_y_zt = S_yt, A = As, L = LLs, X = xs[,i], 
-                                     Y_t = ys[,i], s_i = surv_juv[clone[2,1]], 
+            yts <- parasitoid_abunds(S_y_zt = S_yt, A = As, L = LLs, X = X_0s[,i], 
+                                     Y_t = Y_0s[,i], s_i = surv_juv[clone[2,1]], 
                                      s_y = s_y, m_1 = mum_days[1], sex_ratio = sex_ratio, 
                                      pred_rate = pred_rate)
             
-            
+
             error_list <- process_error(X_t1 = xtr, Y_t1 = ytr,
-                                        X_t = xr[,i], Y_t = yr[,i],
+                                        X_t = X_0r[,i], Y_t = Y_0r[,i],
                                         sigma_x = sigma_x, sigma_y = sigma_y, rho = rho,
-                                        z = z, Y_m = yr[nrow(yr),i],
+                                        z = z, Y_m = Y_0r[nrow(Y_0r),i],
                                         total_stages = n_aphid_stages + n_wasp_stages,
                                         living_aphids = n_aphid_stages + mum_days[1],
                                         sigma_d_mult = sigma_d_mult)
@@ -217,9 +219,9 @@ HighTunnelExptSimfunct <- function(
             ytr <- error_list$wasps
 
             error_list <- process_error(X_t1 = xts, Y_t1 = yts,
-                                        X_t = xs[,i], Y_t = ys[,i],
+                                        X_t = X_0s[,i], Y_t = Y_0s[,i],
                                         sigma_x = sigma_x, sigma_y = sigma_y, rho = rho,
-                                        z = z, Y_m = ys[nrow(ys),i],
+                                        z = z, Y_m = Y_0s[nrow(Y_0s),i],
                                         total_stages = n_aphid_stages + n_wasp_stages,
                                         living_aphids = n_aphid_stages + mum_days[1],
                                         sigma_d_mult = sigma_d_mult)
@@ -229,45 +231,45 @@ HighTunnelExptSimfunct <- function(
             # Do harvesting if it's in the list of harvest times
             if (t %in% harvest_times[i,1:(ncol(harvest_times)-1)]) {
                 # Kill non-parasitized aphids
-                xtr <- kill * xtr
-                xts <- kill * xts
+                xtr <- harvest_surv * xtr
+                xts <- harvest_surv * xts
                 # Kill parasitized (but still living) aphids at the same rate
-                ytr[1:mum_days[1]] <- kill * ytr[1:mum_days[1]]
-                yts[1:mum_days[1]] <- kill * yts[1:mum_days[1]]
+                ytr[1:mum_days[1]] <- harvest_surv * ytr[1:mum_days[1]]
+                yts[1:mum_days[1]] <- harvest_surv * yts[1:mum_days[1]]
                 # Kill all mummies
                 ytr[(mum_days[1]+1):(length(ytr)-1)] <- 0
                 yts[(mum_days[1]+1):(length(yts)-1)] <- 0
             }
             
-            # Filling in values for the next iteration (xr, xs, yr, ys hold time t info)
-            xr[,i] <- xtr
-            xs[,i] <- xts
-            yr[,i] <- ytr
-            ys[,i] <- yts
+            # Filling in values for the next iteration (X_0r, X_0s, Y_0r, Y_0s hold time t info)
+            X_0r[,i] <- xtr
+            X_0s[,i] <- xts
+            Y_0r[,i] <- ytr
+            Y_0s[,i] <- yts
         }
         
         # Dispersal
         # ----
         
         # Aphids (first 4 instars apparently don't disperse)
-        disp_stages <- (sum(instar_days[clone[1,1],1:4])+1):nrow(xr)
-        xr <- dispersal(xr, disp_aphid, disp_stages-1)  # -1 to make them C++ indices
-        disp_stages <- (sum(instar_days[clone[2,1],1:4])+1):nrow(xs)
-        xs <- dispersal(xs, disp_aphid, disp_stages-1)
+        disp_stages <- (sum(instar_days[clone[1,1],1:4])+1):nrow(X_0r)
+        X_0r <- dispersal(X_0r, disp_aphid, disp_stages-1)  # -1 to make them C++ indices
+        disp_stages <- (sum(instar_days[clone[2,1],1:4])+1):nrow(X_0s)
+        X_0s <- dispersal(X_0s, disp_aphid, disp_stages-1)
         
         # Wasps (only adults disperse)
-        disp_stages <- nrow(yr)
-        yr <- dispersal(yr, disp_wasp, disp_stages-1)
-        disp_stages <- nrow(ys)
-        ys <- dispersal(ys, disp_wasp, disp_stages-1)
+        disp_stages <- nrow(Y_0r)
+        Y_0r <- dispersal(Y_0r, disp_wasp, disp_stages-1)
+        disp_stages <- nrow(Y_0s)
+        Y_0s <- dispersal(Y_0s, disp_wasp, disp_stages-1)
         
         # X is sum of all living aphids
-        Xr[t,] <- colSums(xr) + colSums(yr[1:mum_days[1],])
-        Xs[t,] <- colSums(xs) + colSums(ys[1:mum_days[1],])
+        Xr[t,] <- colSums(X_0r) + colSums(Y_0r[1:mum_days[1],])
+        Xs[t,] <- colSums(X_0s) + colSums(Y_0s[1:mum_days[1],])
         
         # Y is proportion of live aphids that are parasitized
-        Yr[t,] <- colSums(yr[1:mum_days[1],]) / Xr[t,]
-        Ys[t,] <- colSums(ys[1:mum_days[1],]) / Xs[t,]
+        Yr[t,] <- colSums(Y_0r[1:mum_days[1],]) / Xr[t,]
+        Ys[t,] <- colSums(Y_0s[1:mum_days[1],]) / Xs[t,]
         
     }
     
@@ -279,15 +281,14 @@ HighTunnelExptSimfunct <- function(
 
 
 
-sigma_d_mult = 1
 
 set.seed(60253704)
-out_list <- HighTunnelExptSimfunct(xr,xs,yr,ys,a,resist_surv,K,K_y,k,h,s_y,
+out_list <- HighTunnelExptSimfunct(X_0r,X_0s,Y_0r,Y_0s,a,resist_surv,K,K_y,k,h,s_y,
                                    sigma_x,sigma_y,rho,sigma_d_mult, # <- Full error
                                    # 0,0,0,1,  # <- No environmental error
                                    # sigma_x,sigma_y,rho,0, # <- No demographic error
                                    # 0,0,0,0, # <- No error
-                                   max_time,n_fields,kill,harvest_times,disp_aphid,
+                                   max_time,n_fields,harvest_surv,harvest_times,disp_aphid,
                                    disp_wasp,pred_rate,
                                    n_aphid_stages, n_wasp_stages, instar_days, mum_days, 
                                    surv_juv, surv_adult, 
@@ -299,7 +300,6 @@ Yr <- out_list$Yr
 Ys <- out_list$Ys
 
 # base_plot()
-
 
 
 
