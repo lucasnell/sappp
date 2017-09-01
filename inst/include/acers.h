@@ -7,6 +7,6 @@
 
 using namespace std;
 using namespace Rcpp;
-using namespace arma;
+// using namespace arma;
 
 #endif

@@ -1,3 +1,12 @@
+library(Rcpp)
+# devtools::clean_dll()
+compileAttributes(); devtools::load_all()
+
+new(aphid_pop, density_0 = 20, K_ = 0.2, stage_days = c(1, 2, 3, 4, 5, 6, 20),
+          surv_juv = 0.98, surv_adult = runif(100), repro = runif(100))
+
+
+
 
 
 # =================================================================================
@@ -93,10 +102,10 @@ aphid_const$methods(
         # --------
         # Fields calculated from inputs
         # --------
-        Y_0 <<- as.numeric(c(rep(0, sum(mum_days)), wasp_density_0))
-        X_0 <<- as.numeric(aphid_density_0 * leslie_sad(leslie))
         n_aphid_stages <<- as.integer(nrow(leslie))
         n_wasp_stages <<- as.integer(sum(mum_days) + 1)
+        Y_0 <<- as.numeric(c(rep(0, sum(mum_days)), wasp_density_0))
+        X_0 <<- as.numeric(aphid_density_0 * leslie_sad(leslie))
 
     },
     
