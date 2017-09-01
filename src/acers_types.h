@@ -1,5 +1,5 @@
-# ifndef _RACE_TYPES_H
-# define _RACE_TYPES_H
+# ifndef _ACERS_TYPES_H
+# define _ACERS_TYPES_H
 
 #include <RcppArmadillo.h>
 #include <sitmo.h>

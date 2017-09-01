@@ -1,5 +1,5 @@
-#ifndef ACE__RACE_H
-#define ACE__RACE_H
+#ifndef ACERS__ACERS_H
+#define ACERS__ACERS_H
 
 
 // This will load Rcpp.h as well
