@@ -6,9 +6,9 @@
 # 
 # # Provides functions instar_to_stage, leslie_matrix, leslie_sad, attack_probs, 
 # # parasitoid_abunds
-Rcpp::sourceCpp('high_tunnel.cpp')
+Rcpp::sourceCpp('under_constr/high_tunnel.cpp')
 
-source('classes.R')
+# source('classes.R')
 
 
 
@@ -99,24 +99,24 @@ attack_surv <- cbind(0.9, 0.6)
 
 
 
-# =============================================
-# set up Leslie matrices
-# =============================================
-
-# resistant clones
-# ------
-leslie_r <- leslie_matrix(n_aphid_stages, instar_days[[clone[1,1]]],
-                          surv_juv[[clone[1,1]]],
-                          surv_adult[[clone[1,2]]], repro[[clone[1,2]]])
-sad_r <- leslie_sad(leslie_r)
-
-
-# susceptible clones
-# ------
-leslie_s <- leslie_matrix(n_aphid_stages, instar_days[[clone[2,1]]],
-                          surv_juv[[clone[2,1]]],
-                          surv_adult[[clone[2,2]]], repro[[clone[2,2]]])
-sad_s <- leslie_sad(leslie_s)
+# # =============================================
+# # set up Leslie matrices
+# # =============================================
+# 
+# # resistant clones
+# # ------
+# leslie_r <- leslie_matrix(n_aphid_stages, instar_days[[clone[1,1]]],
+#                           surv_juv[[clone[1,1]]],
+#                           surv_adult[[clone[1,2]]], repro[[clone[1,2]]])
+# sad_r <- leslie_sad(leslie_r)
+# 
+# 
+# # susceptible clones
+# # ------
+# leslie_s <- leslie_matrix(n_aphid_stages, instar_days[[clone[2,1]]],
+#                           surv_juv[[clone[2,1]]],
+#                           surv_adult[[clone[2,2]]], repro[[clone[2,2]]])
+# sad_s <- leslie_sad(leslie_s)
 
 
 
@@ -154,13 +154,13 @@ prop_resist <- 0.05
 # run program
 # =============================================
 
-# Initial densities of aphids by stage
-X_0r <- prop_resist * init_x * sad_r %*% matrix(1,1,n_fields)
-X_0s <- (1-prop_resist) * init_x * sad_s %*% matrix(1,1,n_fields)
+# # Initial densities of aphids by stage
+# X_0r <- prop_resist * init_x * sad_r %*% matrix(1,1,n_fields)
+# X_0s <- (1-prop_resist) * init_x * sad_s %*% matrix(1,1,n_fields)
 
-# Initial parasitoid densities by stage (starting with no parasitized aphids or mummies)
-Y_0r <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
-Y_0s <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
+# # Initial parasitoid densities by stage (starting with no parasitized aphids or mummies)
+# Y_0r <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
+# Y_0s <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
 
 # Setting total time (days) and times for harvesting
 max_time <- cycle_length * (1 + n_cycles)
@@ -169,134 +169,134 @@ harvest_times <- rbind(c(cycle_length * 1:n_cycles),
                          cycle_length * n_cycles))
 
 
-
-# leslie_r <- leslie_matrix(n_aphid_stages, instar_days$high,
-#                           surv_juv$high, surv_adult$high, repro$low)
-# prop_resist * init_x * leslie_sad(leslie_r)
-
-
-# =====================================================================================
-# =====================================================================================
-
-#       APHID LINES
-
-# =====================================================================================
-# =====================================================================================
-
-# -------
-# Resistant aphid line info
-# -------
-res_line <- aphid_const$new(
-    leslie = leslie_matrix(instar_days$high, surv_juv$high, surv_adult$high, repro$low),
-    rel_attack = rel_attack$high,
-    a = a, K = K, K_y = K_y, k = k, h = h, s_y = s_y, sigma_x = sigma_x, 
-    sigma_y = sigma_y, rho = rho,
-    disp_stages = (sum(instar_days[[clone[2,1]]][1:4])+1):32, 
-    mum_days = mum_days, 
-    aphid_density_0 = prop_resist * init_x,
-    attack_surv = attack_surv)
-res_line
-
-
-
-
-# -------
-# Susceptible aphid line info
-# -------
-# Difference is no resistance, higher reproduction, higher starting density
-sus_line <- aphid_const$new(
-    leslie = leslie_matrix(instar_days$high, surv_juv$high, surv_adult$high, repro$high),
-    rel_attack = rel_attack$high,
-    a = a, K = K, K_y = K_y, k = k, h = h, s_y = s_y, sigma_x = sigma_x, 
-    sigma_y = sigma_y, rho = rho,
-    disp_stages = (sum(instar_days[[clone[2,1]]][1:4])+1):32, 
-    mum_days = mum_days, 
-    aphid_density_0 = (1 - prop_resist) * init_x)
-sus_line
-
-
-
-
-
-
-# =====================================================================================
-# =====================================================================================
-
-#       FIELDS
-
-# =====================================================================================
-# =====================================================================================
-
-
-
-
-
-
-
-# ====================================================================================
-# ====================================================================================
-
-# Plotting
-
-# ====================================================================================
-# ====================================================================================
-
-
-base_p <- function(ymult = 1) {
-    Ymax <- ymult * max(Xr[,1]+Xs[,1])
-    min_time <- 1
-    
-    # Figure 1
-    plot(1:(max_time-min_time+1),Xr[min_time:max_time,1]+Xs[min_time:max_time,1],
-         type = 'l', col = 'dodgerblue', ylab = '', xlab = 'time', main = '')
-    lines(1:(max_time-min_time+1),Xr[min_time:max_time,2]+Xs[min_time:max_time,2],
-          col = 'dodgerblue', lty = 2)
-    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]),
-          col = 'firebrick')
-    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]),
-          col = 'firebrick', lty = 2)
-    lines(1:(max_time-min_time+1),Ymax*rowSums(Xr[min_time:max_time,])/
-              (rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])),
-          col = 'black')
-    
-    # Blue is aphid abundances
-    # Red is parasitoid abundances
-    # Black is (resistant aphids) / (total aphids)
-    # Dotted lines are field # 2 (different harvesting regime)
-}
-
-
-
-
-gg_p <- function() {
-    aphids <- as_data_frame(cbind(Xr, Xs)) %>%
-        mutate(time = 1:nrow(Xs), `1` = V1+V3, `2` = V2+V4,
-               r_prop = (V1+V2)/(V1+V2+V3+V4)) %>% # <-- (resistant aphids) / (total aphids)
-        select(-1:-4) %>% 
-        gather('field', 'density', 2:3, factor_key = TRUE)
-    
-    wasps <- as_data_frame(cbind(Ys, Yr)) %>%
-        mutate(time = 1:nrow(Ys), `1` = (V1+V3)/2, `2` = (V2+V4)/2) %>% 
-        select(-1:-4) %>% 
-        gather('field', 'density', 2:3, factor_key = TRUE)
-    
-    axis_mult = max(aphids$density)
-    # axis_mult = 330
-    
-    ggplot(aphids, aes(time)) +
-        theme_classic() +
-        theme(legend.position = c(0.01, 1), legend.direction = 'horizontal',
-              legend.justification = c('left', 'top'), legend.margin = margin(0,0,0,0),
-              legend.background = element_rect(fill = NA)) +
-        geom_line(aes(y = density, linetype = field), color = 'dodgerblue') +
-        geom_line(data = wasps, aes(y = density * axis_mult, linetype = field), 
-                  color = 'firebrick') +
-        geom_line(aes(y = r_prop * axis_mult)) +
-        geom_text(data = data_frame(time = c(200, 350, 500), 
-                                    y = rep(axis_mult * 1.1, 3), 
-                                    lab = c('aphids', '% parasit.', '% resist.')),
-                  aes(y = y, label = lab), color = c('dodgerblue', 'firebrick', 'black'),
-                  hjust = c(0, 0.5, 1), vjust = 1) +
-        scale_y_continuous('aphid density', limits = c(0, axis_mult * 1.1),
-                           sec.axis = sec_axis(~ . * 100 / axis_mult, name = '%'))
-}
+# 
+# # leslie_r <- leslie_matrix(n_aphid_stages, instar_days$high,
+# #                           surv_juv$high, surv_adult$high, repro$low)
+# # prop_resist * init_x * leslie_sad(leslie_r)
+# 
+# 
+# # =====================================================================================
+# # =====================================================================================
+# 
+# #       APHID LINES
+# 
+# # =====================================================================================
+# # =====================================================================================
+# 
+# # -------
+# # Resistant aphid line info
+# # -------
+# res_line <- aphid_const$new(
+#     leslie = leslie_matrix(instar_days$high, surv_juv$high, surv_adult$high, repro$low),
+#     rel_attack = rel_attack$high,
+#     a = a, K = K, K_y = K_y, k = k, h = h, s_y = s_y, sigma_x = sigma_x, 
+#     sigma_y = sigma_y, rho = rho,
+#     disp_stages = (sum(instar_days[[clone[2,1]]][1:4])+1):32, 
+#     mum_days = mum_days, 
+#     aphid_density_0 = prop_resist * init_x,
+#     attack_surv = attack_surv)
+# res_line
+# 
+# 
+# 
+# 
+# # -------
+# # Susceptible aphid line info
+# # -------
+# # Difference is no resistance, higher reproduction, higher starting density
+# sus_line <- aphid_const$new(
+#     leslie = leslie_matrix(instar_days$high, surv_juv$high, surv_adult$high, repro$high),
+#     rel_attack = rel_attack$high,
+#     a = a, K = K, K_y = K_y, k = k, h = h, s_y = s_y, sigma_x = sigma_x, 
+#     sigma_y = sigma_y, rho = rho,
+#     disp_stages = (sum(instar_days[[clone[2,1]]][1:4])+1):32, 
+#     mum_days = mum_days, 
+#     aphid_density_0 = (1 - prop_resist) * init_x)
+# sus_line
+# 
+# 
+# 
+# 
+# 
+# 
+# # =====================================================================================
+# # =====================================================================================
+# 
+# #       FIELDS
+# 
+# # =====================================================================================
+# # =====================================================================================
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# # ====================================================================================
+# # ====================================================================================
+# 
+# # Plotting
+# 
+# # ====================================================================================
+# # ====================================================================================
+# 
+# 
+# base_p <- function(ymult = 1) {
+#     Ymax <- ymult * max(Xr[,1]+Xs[,1])
+#     min_time <- 1
+#     
+#     # Figure 1
+#     plot(1:(max_time-min_time+1),Xr[min_time:max_time,1]+Xs[min_time:max_time,1],
+#          type = 'l', col = 'dodgerblue', ylab = '', xlab = 'time', main = '')
+#     lines(1:(max_time-min_time+1),Xr[min_time:max_time,2]+Xs[min_time:max_time,2],
+#           col = 'dodgerblue', lty = 2)
+#     lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]),
+#           col = 'firebrick')
+#     lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]),
+#           col = 'firebrick', lty = 2)
+#     lines(1:(max_time-min_time+1),Ymax*rowSums(Xr[min_time:max_time,])/
+#               (rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])),
+#           col = 'black')
+#     
+#     # Blue is aphid abundances
+#     # Red is parasitoid abundances
+#     # Black is (resistant aphids) / (total aphids)
+#     # Dotted lines are field # 2 (different harvesting regime)
+# }
+# 
+# 
+# 
+# 
+# gg_p <- function() {
+#     aphids <- as_data_frame(cbind(Xr, Xs)) %>%
+#         mutate(time = 1:nrow(Xs), `1` = V1+V3, `2` = V2+V4,
+#                r_prop = (V1+V2)/(V1+V2+V3+V4)) %>% # <-- (resistant aphids) / (total aphids)
+#         select(-1:-4) %>% 
+#         gather('field', 'density', 2:3, factor_key = TRUE)
+#     
+#     wasps <- as_data_frame(cbind(Ys, Yr)) %>%
+#         mutate(time = 1:nrow(Ys), `1` = (V1+V3)/2, `2` = (V2+V4)/2) %>% 
+#         select(-1:-4) %>% 
+#         gather('field', 'density', 2:3, factor_key = TRUE)
+#     
+#     axis_mult = max(aphids$density)
+#     # axis_mult = 330
+#     
+#     ggplot(aphids, aes(time)) +
+#         theme_classic() +
+#         theme(legend.position = c(0.01, 1), legend.direction = 'horizontal',
+#               legend.justification = c('left', 'top'), legend.margin = margin(0,0,0,0),
+#               legend.background = element_rect(fill = NA)) +
+#         geom_line(aes(y = density, linetype = field), color = 'dodgerblue') +
+#         geom_line(data = wasps, aes(y = density * axis_mult, linetype = field), 
+#                   color = 'firebrick') +
+#         geom_line(aes(y = r_prop * axis_mult)) +
+#         geom_text(data = data_frame(time = c(200, 350, 500), 
+#                                     y = rep(axis_mult * 1.1, 3), 
+#                                     lab = c('aphids', '% parasit.', '% resist.')),
+#                   aes(y = y, label = lab), color = c('dodgerblue', 'firebrick', 'black'),
+#                   hjust = c(0, 0.5, 1), vjust = 1) +
+#         scale_y_continuous('aphid density', limits = c(0, axis_mult * 1.1),
+#                            sec.axis = sec_axis(~ . * 100 / axis_mult, name = '%'))
+# }

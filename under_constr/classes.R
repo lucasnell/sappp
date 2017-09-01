@@ -1,9 +1,110 @@
 library(Rcpp)
 # devtools::clean_dll()
-compileAttributes(); devtools::load_all()
+compileAttributes()
+devtools::load_all()
 
-new(aphid_pop, density_0 = 20, K_ = 0.2, stage_days = c(1, 2, 3, 4, 5, 6, 20),
-          surv_juv = 0.98, surv_adult = runif(100), repro = runif(100))
+# # aphid_wasp_info
+# source("under_constr/parameters.R")
+# save(list = ls()[! ls() %in% c('clone', 'cycle_length', 'dispersal', 'instar_to_stage',
+#                                'n_aphid_stages', 'n_cycles', 'n_fields', 'n_lines', 
+#                                'n_wasp_stages', 'parasitoid_abunds', 'process_error')],
+#      file = 'under_constr/og_parameters.rda')
+load(file = 'under_constr/og_parameters.rda')
+
+
+res_line <- make_aphid_wasp_info(
+    aphid_density_0 = prop_resist * init_x,
+    K = K,
+    aphid_instar_days = instar_days$high,
+    aphid_surv_juv = surv_juv$high,
+    aphid_surv_adult = surv_adult$high,
+    aphid_repro = repro$low,
+    wasp_density_0 = 1,
+    K_y = K_y,
+    s_y = s_y,
+    mum_days = mum_days,
+    rel_attack = rel_attack$high,
+    a = a,
+    k = k,
+    h = h,
+    sigma_x = sigma_x,
+    sigma_y = sigma_y,
+    rho = rho,
+    disp_stages = 6:(sum(instar_days$high)))
+
+
+res_line
+
+
+
+
+# # -------
+# # Resistant aphid line info
+# # -------
+# res_line <- aphid_const$new(
+#     leslie = leslie_matrix(instar_days$high, surv_juv$high, surv_adult$high, repro$low),
+#     rel_attack = rel_attack$high,
+#     a = a, K = K, K_y = K_y, k = k, h = h, s_y = s_y, sigma_x = sigma_x, 
+#     sigma_y = sigma_y, rho = rho,
+#     disp_stages = (sum(instar_days[[clone[2,1]]][1:4])+1):32, 
+#     mum_days = mum_days, 
+#     aphid_density_0 = prop_resist * init_x,
+#     attack_surv = attack_surv)
+# res_line
+# 
+# 
+# 
+# 
+# # -------
+# # Susceptible aphid line info
+# # -------
+# # Difference is no resistance, higher reproduction, higher starting density
+# sus_line <- aphid_const$new(
+#     leslie = leslie_matrix(instar_days$high, surv_juv$high, surv_adult$high, repro$high),
+#     rel_attack = rel_attack$high,
+#     a = a, K = K, K_y = K_y, k = k, h = h, s_y = s_y, sigma_x = sigma_x, 
+#     sigma_y = sigma_y, rho = rho,
+#     disp_stages = (sum(instar_days[[clone[2,1]]][1:4])+1):32, 
+#     mum_days = mum_days, 
+#     aphid_density_0 = (1 - prop_resist) * init_x)
+# sus_line
+
+
+# new(aphid_pop, density_0 = 20, K_ = 0.2, instar_days = c(1, 2, 3, 4, 5, 6, 20),
+#           surv_juv = 0.98, surv_adult = runif(100), repro = runif(100))
+
+# arma::uvec instar_days
+# double surv_juv
+# arma::vec surv_adult
+# arma::vec repro
+# double aphid_density_0
+# double K
+# 
+# double wasp_density_0
+# double K_y
+# double s_y
+# double sex_ratio
+# arma::uvec mum_days
+# 
+# arma::vec rel_attack
+# double a
+# double k
+# double h
+# arma::vec attack_surv
+# 
+# double sigma_x
+# double sigma_y
+# double rho
+# double demog_mult
+# 
+# double harvest_surv
+# double disp_aphid
+# double disp_wasp
+# arma::uvec disp_stages
+# double pred_rate
+
+
+
 
 
 
