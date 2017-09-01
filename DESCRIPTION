@@ -1,0 +1,17 @@
+Package: race
+Type: Package
+Title: Simulate Repeated Aphid Cage Experiments
+Version: 1.0
+Date: 2017-09-01
+Author: Lucas Nell
+Maintainer: Lucas Nell <lucas@lucasnell.com>
+Description: Simulate repeated aphid cage experiments.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+  Rcpp (>= 0.12.12)
+LinkingTo:
+  Rcpp,
+  RcppArmadillo,
+  sitmo
