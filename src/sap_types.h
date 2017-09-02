@@ -47,6 +47,9 @@ public:
     // -------
     // Constructors
     // -------
+    
+    pop_nums() {};
+    
     pop_nums(const arma::vec& X_0, const arma::vec& Y_0) 
         : X_t(X_0), X_t1(X_0), Y_t(Y_0), Y_t1(Y_0),
           A(arma::zeros<arma::vec>(X_0.n_elem)) {};
@@ -137,7 +140,7 @@ public:
     double sigma_x;         // environmental standard deviation for aphids
     double sigma_y;         // environmental standard deviation for parasitoids
     double rho;             // environmental correlation among instars
-    double demog_mult;      // Multiplier for demographic stochasticity
+    double demog_mult;      // multiplier for demographic stochasticity
 
     // Environment: Harvest, dispersal, and predation
     double harvest_surv;    // survival rate for living aphids during a harvest

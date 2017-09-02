@@ -5,32 +5,25 @@ devtools::load_all()
 
 
 
-# # const_pop
-# source("under_constr/parameters.R")
-# save(list = ls()[! ls() %in% c('clone', 'cycle_length', 'dispersal', 'instar_to_stage',
-#                                'n_aphid_stages', 'n_cycles', 'n_fields', 'n_lines', 
-#                                'n_wasp_stages', 'parasitoid_abunds', 'process_error')],
-#      file = 'under_constr/og_parameters.rda')
-load(file = 'under_constr/og_parameters.rda')
+# -------
+# Susceptible aphid line info
+# -------
+sus_line <- make_const_pop(
+    "susceptible",
+    aphid_density_0 = (1 - sap::populations$prop_resist) * sap::populations$aphids_0)
+sus_line
+
 
 
 # -------
 # Resistant aphid line info
 # -------
+# Difference is resistance, lower reproduction, and lower starting density
 res_line <- make_const_pop(
     "resistant",
-    attack_surv = attack_surv,
-    aphid_density_0 = prop_resist * init_x,
-    aphid_instar_days = instar_days$high,
-    aphid_surv_juv = surv_juv$high,
-    aphid_surv_adult = surv_adult$high,
-    aphid_repro = repro$low,
-    wasp_density_0 = 1,
-    mum_days = mum_days,
-    rel_attack = rel_attack$high,
-    disp_stages = 6:(sum(instar_days$high)),
-    K = K, K_y = K_y, s_y = s_y, a = a, k = k, h = h, sigma_x = sigma_x, 
-    sigma_y = sigma_y, rho = rho)
+    attack_surv = sap::wasp_attack$attack_surv,
+    aphid_density_0 = sap::populations$prop_resist * sap::populations$aphids_0,
+    aphid_repro = sap::populations$repro$low)
 res_line
 
 x <- new(aphid_line, res_line)
@@ -38,25 +31,6 @@ x
 
 
 
-
-# -------
-# Susceptible aphid line info
-# -------
-# Difference is no resistance, higher reproduction, higher starting density
-sus_line <- make_const_pop(
-    "susceptible",
-    aphid_density_0 = (1 - prop_resist) * init_x,
-    aphid_instar_days = instar_days$high,
-    aphid_surv_juv = surv_juv$high,
-    aphid_surv_adult = surv_adult$high,
-    aphid_repro = repro$high,
-    wasp_density_0 = 1,
-    mum_days = mum_days,
-    rel_attack = rel_attack$high,
-    disp_stages = 6:(sum(instar_days$high)),
-    K = K, K_y = K_y, s_y = s_y, a = a, k = k, h = h, sigma_x = sigma_x, 
-    sigma_y = sigma_y, rho = rho)
-sus_line
 
 
 
