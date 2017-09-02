@@ -16,6 +16,7 @@ LinkingTo:
   Rcpp,
   RcppArmadillo,
   sitmo
-Suggests: knitr,
-    rmarkdown
+Suggests:
+  knitr,
+  rmarkdown
 VignetteBuilder: knitr

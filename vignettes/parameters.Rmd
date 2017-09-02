@@ -165,7 +165,8 @@ simulations.
 ```{r process_error}
 environ[["sigma_x"]] <- 0.44              # environmental std dev for aphids
 environ[["sigma_y"]] <- 0.70              # environmental std dev for wasps
-environ[["rho"]] <- 2/(1+exp(-0.70))-1    # environmental correlation among instars
+environ[["rho"]] <- signif(               # environmental correlation among instars
+    2/(1+exp(-environ[["sigma_y"]]))-1, 2)
 ```
 
 

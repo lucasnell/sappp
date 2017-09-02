@@ -7,11 +7,31 @@ Rcpp::loadModule("aphid_line_mod", TRUE)
 # Create an const_pop object from input parameters
 make_const_pop <- function(
     aphid_name,
-    aphid_density_0, K, aphid_instar_days, aphid_surv_juv, aphid_surv_adult, 
-    aphid_repro, wasp_density_0, K_y, s_y, mum_days, rel_attack, a, k, h, 
-    sigma_x, sigma_y, rho, disp_stages,
-    wasp_sex_ratio = 0.5, attack_surv = numeric(2), demog_mult = 1.0, 
-    harvest_surv = 0.05, disp_aphid = 0.05, disp_wasp = 1.0, pred_rate = 0.8) {
+    aphid_density_0 = populations$aphids_0, 
+    K = populations$K, 
+    aphid_instar_days = dev_times$instar_days$lowT, 
+    aphid_surv_juv = populations$surv_juv$high, 
+    aphid_surv_adult = populations$surv_adult$high, 
+    aphid_repro = populations$repro$high, 
+    wasp_density_0 = populations$wasps_0, 
+    K_y = populations$K_y, 
+    s_y = populations$s_y, 
+    mum_days = dev_times$mum_days, 
+    rel_attack = wasp_attack$rel_attack$lowT, 
+    a = wasp_attack$a, 
+    k = wasp_attack$k, 
+    h = wasp_attack$h, 
+    sigma_x = environ$sigma_x, 
+    sigma_y = environ$sigma_y, 
+    rho = environ$rho, 
+    disp_stages,
+    wasp_sex_ratio = 0.5, 
+    attack_surv = numeric(2), 
+    demog_mult = 1.0, 
+    harvest_surv = 0.05, 
+    disp_aphid = 0.05, 
+    disp_wasp = 1.0, 
+    pred_rate = 0.8) {
     
     L = list()
     
