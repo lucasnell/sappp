@@ -68,8 +68,8 @@ RCPP_MODULE(const_pop_mod) {
             "dispersal rate for aphids")
         .field_readonly("disp_wasp", &const_pop::disp_wasp,
             "dispersal rate for wasps")
-        .field_readonly("disp_stages", &const_pop::disp_stages,
-            "stages in which dispersal occurs in aphids")
+        .field_readonly("disp_start", &const_pop::disp_start,
+            "stage in which dispersal starts in aphids")
         .field_readonly("pred_rate", &const_pop::pred_rate,
             "predation on aphids and mummies")
     ;

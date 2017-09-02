@@ -143,7 +143,7 @@ public:
     double harvest_surv;    // survival rate for living aphids during a harvest
     double disp_aphid;      // dispersal rate for aphids
     double disp_wasp;       // dispersal rate for wasps
-    arma::uvec disp_stages; // stages in which dispersal occurs in aphids
+    uint disp_start;        // stage in which dispersal starts in aphids
     double pred_rate;       // predation on aphids and mummies
 
 
@@ -162,7 +162,7 @@ public:
             "K", "sex_ratio", "K_y", "s_y", "mum_days", "wasp_density_0",
             "rel_attack", "a", "k", "h", "attack_surv", "sigma_x", "sigma_y",
             "rho", "demog_mult", "harvest_surv", "disp_aphid", "disp_wasp",
-            "disp_stages", "pred_rate"};
+            "disp_start", "pred_rate"};
         CharacterVector list_names = par_list.names();
         for (auto n : needed_names) {
             if (std::find(list_names.begin(), list_names.end(), n) == list_names.end()) {
@@ -204,7 +204,7 @@ public:
         harvest_surv = as<double>(par_list["harvest_surv"]);
         disp_aphid = as<double>(par_list["disp_aphid"]);
         disp_wasp = as<double>(par_list["disp_wasp"]);
-        disp_stages = as<arma::uvec>(par_list["disp_stages"]);
+        disp_start = as<uint>(par_list["disp_start"]);
         pred_rate = as<double>(par_list["pred_rate"]);
     }
 

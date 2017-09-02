@@ -8,30 +8,30 @@ Rcpp::loadModule("aphid_line_mod", TRUE)
 make_const_pop <- function(
     aphid_name,
     aphid_density_0 = populations$aphids_0, 
-    K = populations$K, 
-    aphid_instar_days = dev_times$instar_days$lowT, 
     aphid_surv_juv = populations$surv_juv$high, 
     aphid_surv_adult = populations$surv_adult$high, 
     aphid_repro = populations$repro$high, 
+    K = populations$K, 
     wasp_density_0 = populations$wasps_0, 
     K_y = populations$K_y, 
     s_y = populations$s_y, 
+    wasp_sex_ratio = populations$sex_ratio, 
+    aphid_instar_days = dev_times$instar_days$highT, 
     mum_days = dev_times$mum_days, 
-    rel_attack = wasp_attack$rel_attack$lowT, 
+    rel_attack = wasp_attack$rel_attack$highT, 
     a = wasp_attack$a, 
     k = wasp_attack$k, 
     h = wasp_attack$h, 
+    attack_surv = numeric(2), 
     sigma_x = environ$sigma_x, 
     sigma_y = environ$sigma_y, 
     rho = environ$rho, 
-    disp_stages,
-    wasp_sex_ratio = 0.5, 
-    attack_surv = numeric(2), 
     demog_mult = 1.0, 
-    harvest_surv = 0.05, 
-    disp_aphid = 0.05, 
-    disp_wasp = 1.0, 
-    pred_rate = 0.8) {
+    disp_start = environ$disp_start$highT,
+    harvest_surv = environ$harvest_surv, 
+    disp_aphid = environ$disp_aphid, 
+    disp_wasp = environ$disp_wasp, 
+    pred_rate = environ$pred_rate) {
     
     L = list()
     
@@ -59,7 +59,7 @@ make_const_pop <- function(
     L[["harvest_surv"]] = harvest_surv;
     L[["disp_aphid"]] = disp_aphid;
     L[["disp_wasp"]] = disp_wasp;
-    L[["disp_stages"]] = disp_stages;
+    L[["disp_start"]] = disp_start;
     L[["pred_rate"]] = pred_rate;
     
     awi = new(const_pop, L)

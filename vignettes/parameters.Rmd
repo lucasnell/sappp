@@ -150,6 +150,15 @@ environ <- list(
 ```
 
 
+For fields, it's assumed that only adults are dispersing, but the day at which this 
+occurs depends on how quickly the aphids are developing.
+
+```{r disp_start}
+environ[["disp_start"]] <-  list(
+    lowT = sum(dev_times$instar_days$lowT[1:4]) + 1, 
+    highT = sum(dev_times$instar_days$highT[1:4]) + 1)
+```
+
 Parameters associated with environmental stochasticity.
 
 `rho` was estimated at 1.0 in Meisner et al. (2014), but that estimate
