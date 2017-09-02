@@ -43,12 +43,12 @@ typedef int_fast64_t sint64;
 // Constant info about one aphid line and wasps that parasitize them
 // This should be used among fields for the same aphid line
 
-//' @export aphid_wasp_info
-class aphid_wasp_info {
+//' @export const_pop
+class const_pop {
 public:
 
     // --------
-    // Parameters:
+    // Fields:
     // --------
 
     // Aphid population
@@ -90,9 +90,9 @@ public:
     // Constructors:
     // --------
 
-    aphid_wasp_info() {};
+    const_pop() {};
     
-    aphid_wasp_info(List par_list)
+    const_pop(List par_list)
     {
         // Check that the list has all necessary parameters:
         CharacterVector needed_names = {
@@ -104,8 +104,9 @@ public:
         CharacterVector list_names = par_list.names();
         for (auto n : needed_names) {
             if (std::find(list_names.begin(), list_names.end(), n) == list_names.end()) {
-                Rcout << n << endl;
-                stop("The above needed argument was not found");
+                string error_msg = "The needed argument " + static_cast<string>(n) + 
+                    " was not found";
+                stop(error_msg);
             };
         }
 
@@ -143,7 +144,7 @@ public:
         pred_rate = as<double>(par_list["pred_rate"]);
     }
 
-    void show() {
+    void show() const {
         arma::rowvec survs = arma::diagvec(leslie, -1).t();
         arma::rowvec fecs = leslie(0, arma::span(1, leslie.n_cols - 1));
         
@@ -175,6 +176,104 @@ public:
 
 
 
+
+
+// Info about an aphid line (and wasps that parasitize them), some of which changes 
+// through time.
+// This should be used for a single line in a single field.
+// The pop_info field can use shared memory for all of the same line across fields
+
+//' @export aphid_line
+class aphid_line {
+public:
+    
+    // --------
+    // Fields:
+    // --------
+    
+    const const_pop& pop_info;  // Aphid line info (doesn't change through time)
+    arma::vec X_t;              // Aphid density at time t
+    arma::vec X_t1;             // Aphid density at time t+1
+    arma::vec Y_t;              // Wasp density at time t
+    arma::vec Y_t1;             // Wasp density at time t+1
+    arma::vec A;                // Attack probabilities at time t+1
+    
+    
+    // --------
+    // Constructors:
+    // --------
+    
+    aphid_line(const const_pop& info) 
+        : pop_info(info),
+          X_t(info.X_0), X_t1(info.X_0),
+          Y_t(info.Y_0), Y_t1(info.Y_0),
+          A(arma::zeros<arma::vec>(info.X_0.n_elem)) {};
+
+    
+    void show() const {
+        
+        Rcout << "< Aphid line info >" << endl;
+        
+        Rcout.precision(4);
+        Rcout << std::fixed;
+        arma::uword N;
+        
+        Rcout << "  Constant info:" << endl;
+        
+        Rcout << "  * Resistances: (";
+        Rcout << pop_info.attack_surv(0) << ' ' << pop_info.attack_surv(1) << ')' << endl;
+        
+        arma::rowvec survs = arma::diagvec(pop_info.leslie, -1).t();
+        arma::rowvec fecs = pop_info.leslie(0, arma::span(1, pop_info.leslie.n_cols - 1));
+        
+        N = std::min(static_cast<arma::uword>(6), survs.n_elem);
+        Rcout << "  * Survivals:   (";
+        for (unsigned i = 0; i < N; i++) Rcout << survs(i) << ' ';
+        if (pop_info.leslie.n_rows > N) Rcout << "...";
+        Rcout << ')' << endl;
+        
+        Rcout << "  * Fecundities: (";
+        for (unsigned i = 0; i < N; i++) Rcout << fecs(i) << ' ';
+        if (pop_info.leslie.n_rows > N) Rcout << "...";
+        Rcout << ')' << endl;
+        
+        Rcout << endl;
+        
+        
+        Rcout << "  Changing info:" << endl;
+        
+        N = std::min(static_cast<arma::uword>(6), X_t.n_elem);
+        Rcout << "  * aphids[t]:     (";
+        for (unsigned i = 0; i < N; i++) Rcout << X_t(i) << ' ';
+        if (X_t.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        Rcout << "  * aphids[t+1]:   (";
+        for (unsigned i = 0; i < N; i++) Rcout << X_t1(i) << ' ';
+        if (X_t1.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+
+        N = std::min(static_cast<arma::uword>(6), Y_t.n_elem);
+        Rcout << "  * wasps[t]:      (";
+        for (unsigned i = 0; i < N; i++) Rcout << Y_t(i) << ' ';
+        if (Y_t.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        Rcout << "  * wasps[t+1]:    (";
+        for (unsigned i = 0; i < N; i++) Rcout << Y_t1(i) << ' ';
+        if (Y_t1.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        
+        N = std::min(static_cast<arma::uword>(6), A.n_elem);
+        Rcout << "  * Pr(attack)[t]: (";
+        for (unsigned i = 0; i < N; i++) Rcout << A(i) << ' ';
+        if (A.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        
+        return;
+        
+    }
+    
+};
+    
 
 
 

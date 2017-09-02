@@ -1,6 +1,10 @@
 
-# Create an aphid_wasp_info object from input parameters
-make_aphid_wasp_info <- function(
+Rcpp::loadModule("const_pop_mod", TRUE)
+Rcpp::loadModule("aphid_line_mod", TRUE)
+
+
+# Create an const_pop object from input parameters
+make_const_pop <- function(
     aphid_density_0, K, aphid_instar_days, aphid_surv_juv, aphid_surv_adult, 
     aphid_repro, wasp_density_0, K_y, s_y, mum_days, rel_attack, a, k, h, 
     sigma_x, sigma_y, rho, disp_stages,
@@ -35,7 +39,9 @@ make_aphid_wasp_info <- function(
     L[["disp_stages"]] = disp_stages;
     L[["pred_rate"]] = pred_rate;
     
-    awi = new(aphid_wasp_info, L)
+    awi = new(const_pop, L)
     
     return(awi)
 }
+
+

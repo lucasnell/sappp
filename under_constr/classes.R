@@ -3,7 +3,7 @@ library(Rcpp)
 compileAttributes()
 devtools::load_all()
 
-# # aphid_wasp_info
+# # const_pop
 # source("under_constr/parameters.R")
 # save(list = ls()[! ls() %in% c('clone', 'cycle_length', 'dispersal', 'instar_to_stage',
 #                                'n_aphid_stages', 'n_cycles', 'n_fields', 'n_lines', 
@@ -15,7 +15,7 @@ load(file = 'under_constr/og_parameters.rda')
 # -------
 # Resistant aphid line info
 # -------
-res_line <- make_aphid_wasp_info(
+res_line <- make_const_pop(
     attack_surv = attack_surv,
     aphid_density_0 = prop_resist * init_x,
     aphid_instar_days = instar_days$high,
@@ -30,13 +30,17 @@ res_line <- make_aphid_wasp_info(
     sigma_y = sigma_y, rho = rho)
 res_line
 
+x <- new(aphid_line, res_line)
+x
+
+
 
 
 # -------
 # Susceptible aphid line info
 # -------
 # Difference is no resistance, higher reproduction, higher starting density
-sus_line <- make_aphid_wasp_info(
+sus_line <- make_const_pop(
     aphid_density_0 = (1 - prop_resist) * init_x,
     aphid_instar_days = instar_days$high,
     aphid_surv_juv = surv_juv$high,
