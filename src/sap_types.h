@@ -282,7 +282,7 @@ public:
         Rcout << std::fixed;
         arma::uword N;
         
-        pop_info.show();
+        // pop_info.show(); // Do not do this!
         
         Rcout << endl;
         

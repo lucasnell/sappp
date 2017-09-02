@@ -1,4 +1,5 @@
 
+Rcpp::loadModule("pop_nums_mod", TRUE)
 Rcpp::loadModule("const_pop_mod", TRUE)
 Rcpp::loadModule("aphid_line_mod", TRUE)
 

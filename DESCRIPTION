@@ -9,10 +9,13 @@ Description: Simulating aphid populations.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: 
+Imports:
   Rcpp (>= 0.12.12),
   RcppArmadillo
 LinkingTo:
   Rcpp,
   RcppArmadillo,
   sitmo
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
