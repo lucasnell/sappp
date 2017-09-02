@@ -13,7 +13,6 @@
 
 using namespace Rcpp;
 using namespace std;
-// using namespace arma;
 
 
 typedef uint_fast8_t uint8;
