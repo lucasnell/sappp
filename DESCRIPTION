@@ -1,11 +1,11 @@
-Package: acers
+Package: sap
 Type: Package
-Title: Aphid Cage Experiments: Repeatability Simulations
+Title: Simulating Aphid Populations
 Version: 1.0
 Date: 2017-09-01
 Author: Lucas Nell
 Maintainer: Lucas Nell <lucas@lucasnell.com>
-Description: Simulating repeated aphid cage experiments.
+Description: Simulating aphid populations.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

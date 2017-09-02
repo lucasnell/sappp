@@ -1,5 +1,5 @@
-#ifndef ACERS__ACERS_H
-#define ACERS__ACERS_H
+#ifndef SAP__SAP_H
+#define SAP__SAP_H
 
 
 // This will load Rcpp.h as well

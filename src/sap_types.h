@@ -1,5 +1,5 @@
-# ifndef _ACERS_TYPES_H
-# define _ACERS_TYPES_H
+# ifndef _SAP_TYPES_H
+# define _SAP_TYPES_H
 
 #include <RcppArmadillo.h> // arma namespace
 #include <sitmo.h>         // parallel rng

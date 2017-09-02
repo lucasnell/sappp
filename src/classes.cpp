@@ -5,7 +5,7 @@
 #include <random>          // normal distribution
 #include <cstdint>         // integer types
 
-#include "acers_types.h"
+#include "sap_types.h"
 
 using namespace Rcpp;
 using namespace std;
@@ -111,7 +111,7 @@ using namespace std;
 
 
 
-RCPP_MODULE(acers_module) {
+RCPP_MODULE(sap_module) {
     using namespace Rcpp;
     
     // class_<aphid_pop>("aphid_pop")
