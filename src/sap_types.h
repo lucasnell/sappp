@@ -48,9 +48,11 @@ class const_pop {
 public:
 
     // --------
-    // Fields:
+    // Members:
     // --------
 
+    string aphid_id;        // unique identifying name for this aphid line
+    
     // Aphid population
     arma::mat leslie;       // Leslie matrix with survival and reproduction
     arma::vec X_0;          // initial aphid abundances by stage
@@ -92,10 +94,11 @@ public:
 
     const_pop() {};
     
-    const_pop(List par_list)
+    const_pop(const List& par_list)
     {
         // Check that the list has all necessary parameters:
         CharacterVector needed_names = {
+            "aphid_name",
             "instar_days", "surv_juv", "surv_adult", "repro", "aphid_density_0",
             "K", "sex_ratio", "K_y", "s_y", "mum_days", "wasp_density_0",
             "rel_attack", "a", "k", "h", "attack_surv", "sigma_x", "sigma_y",
@@ -109,6 +112,8 @@ public:
                 stop(error_msg);
             };
         }
+        
+        aphid_id = as<string>(par_list["aphid_id"]);
 
         leslie = leslie_matrix(as<arma::uvec>(par_list["instar_days"]),
                                as<double>(par_list["surv_juv"]),
@@ -153,7 +158,7 @@ public:
         Rcout.precision(4);
         Rcout << std::fixed;
         
-        Rcout << "< Aphid line constant info >" << endl;
+        Rcout << "< Constant info for '" << aphid_id << "' line >" << endl;
         Rcout << "Resistances: (";
         Rcout << attack_surv(0) << ' ' << attack_surv(1) << ')' << endl;
         
@@ -188,7 +193,7 @@ class aphid_line {
 public:
     
     // --------
-    // Fields:
+    // Members:
     // --------
     
     const const_pop& pop_info;  // Aphid line info (doesn't change through time)
@@ -273,8 +278,47 @@ public:
     }
     
 };
-    
 
+
+
+
+//' @export patch
+class patch {
+public:
+    
+    // -------
+    // Members:
+    // -------
+    arma::uvec harvest_times;  // times when harvesting occurs
+    arma::uword max_time;      // number of time points to simulate
+    double z;                  // Sum of all living aphids at time t
+    double x;                  // Sum of non-parasitized aphids at time t
+    double Y_m;                // Total number of adult wasps
+    
+    // -------
+    // Constructor:
+    // -------
+    
+    patch(const arma::uvec& harvest_times_, const arma::uword& max_time_)
+        : harvest_times(harvest_times_), max_time(max_time_),
+          z(0.0), x(0.0), Y_m(0.0) {};
+    
+    
+    // Methods:
+    
+    // Density dependence for aphids (note that equation is different in paper)
+    double S(double K) {
+        return 1 / (1 + K * z);
+    };
+    
+    // Density dependence for wasps (note that equation is different in paper)
+    double S_y(double K_y) {
+        return 1 / (1 + K_y * z);
+    };
+    
+    
+    
+};
 
 
 #endif
