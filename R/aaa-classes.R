@@ -5,6 +5,7 @@ Rcpp::loadModule("aphid_line_mod", TRUE)
 
 # Create an const_pop object from input parameters
 make_const_pop <- function(
+    aphid_name,
     aphid_density_0, K, aphid_instar_days, aphid_surv_juv, aphid_surv_adult, 
     aphid_repro, wasp_density_0, K_y, s_y, mum_days, rel_attack, a, k, h, 
     sigma_x, sigma_y, rho, disp_stages,
@@ -13,6 +14,7 @@ make_const_pop <- function(
     
     L = list()
     
+    L[["aphid_name"]] = aphid_name;
     L[["instar_days"]] = aphid_instar_days;
     L[["surv_juv"]] = aphid_surv_juv;
     L[["surv_adult"]] = aphid_surv_adult;

@@ -29,13 +29,72 @@ typedef int_fast64_t sint64;
 
 
 
-// ====================================================================================
-// ====================================================================================
 
-// Classes for information that is constant through time
+// Simple class to hold population numbers for aphids and wasps through time
+//' @export pop_nums
+class pop_nums {
+public:
 
-// ====================================================================================
-// ====================================================================================
+    // -------
+    // Members
+    // -------
+    arma::vec X_t;              // Aphid density at time t
+    arma::vec X_t1;             // Aphid density at time t+1
+    arma::vec Y_t;              // Wasp density at time t
+    arma::vec Y_t1;             // Wasp density at time t+1
+    arma::vec A;                // Attack probabilities at time t
+    
+    // -------
+    // Constructors
+    // -------
+    pop_nums(const arma::vec& X_0, const arma::vec& Y_0) 
+        : X_t(X_0), X_t1(X_0), Y_t(Y_0), Y_t1(Y_0),
+          A(arma::zeros<arma::vec>(X_0.n_elem)) {};
+    
+    pop_nums(const arma::uword& X_len, const arma::uword& Y_len) 
+        : X_t(arma::zeros<arma::vec>(X_len)), 
+          X_t1(arma::zeros<arma::vec>(X_len)), 
+          Y_t(arma::zeros<arma::vec>(Y_len)), 
+          Y_t1(arma::zeros<arma::vec>(Y_len)),
+          A(arma::zeros<arma::vec>(X_len)) {};
+    
+    // -------
+    // Methods
+    // -------
+    
+    void show() const {
+        
+        Rcout << "Population numbers:" << endl;
+        arma::uword N = std::min(static_cast<arma::uword>(6), X_t.n_elem);
+        Rcout << "  * aphids[t]:     (";
+        for (unsigned i = 0; i < N; i++) Rcout << X_t(i) << ' ';
+        if (X_t.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        Rcout << "  * aphids[t+1]:   (";
+        for (unsigned i = 0; i < N; i++) Rcout << X_t1(i) << ' ';
+        if (X_t1.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        
+        N = std::min(static_cast<arma::uword>(6), Y_t.n_elem);
+        Rcout << "  * wasps[t]:      (";
+        for (unsigned i = 0; i < N; i++) Rcout << Y_t(i) << ' ';
+        if (Y_t.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        Rcout << "  * wasps[t+1]:    (";
+        for (unsigned i = 0; i < N; i++) Rcout << Y_t1(i) << ' ';
+        if (Y_t1.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        
+        N = std::min(static_cast<arma::uword>(6), A.n_elem);
+        Rcout << "  * Pr(attack)[t]: (";
+        for (unsigned i = 0; i < N; i++) Rcout << A(i) << ' ';
+        if (A.n_elem > N) Rcout << "...";
+        Rcout << ')' << endl;
+        
+        return;
+    }
+    
+};
 
 
 
@@ -51,7 +110,7 @@ public:
     // Members:
     // --------
 
-    string aphid_id;        // unique identifying name for this aphid line
+    string aphid_name;      // unique identifying name for this aphid line
     
     // Aphid population
     arma::mat leslie;       // Leslie matrix with survival and reproduction
@@ -113,7 +172,7 @@ public:
             };
         }
         
-        aphid_id = as<string>(par_list["aphid_id"]);
+        aphid_name = as<string>(par_list["aphid_name"]);
 
         leslie = leslie_matrix(as<arma::uvec>(par_list["instar_days"]),
                                as<double>(par_list["surv_juv"]),
@@ -158,16 +217,16 @@ public:
         Rcout.precision(4);
         Rcout << std::fixed;
         
-        Rcout << "< Constant info for '" << aphid_id << "' line >" << endl;
-        Rcout << "Resistances: (";
+        Rcout << "Constant info for '" << aphid_name << "' line" << endl;
+        Rcout << "  * Resistances: (";
         Rcout << attack_surv(0) << ' ' << attack_surv(1) << ')' << endl;
         
-        Rcout << "Survivals:   (";
+        Rcout << "  * Survivals:   (";
         for (unsigned i = 0; i < N; i++) Rcout << survs(i) << ' ';
         if (leslie.n_rows > N) Rcout << "...";
         Rcout << ')' << endl;
         
-        Rcout << "Fecundities: (";
+        Rcout << "  * Fecundities: (";
         for (unsigned i = 0; i < N; i++) Rcout << fecs(i) << ' ';
         if (leslie.n_rows > N) Rcout << "...";
         Rcout << ')' << endl;
@@ -223,24 +282,7 @@ public:
         Rcout << std::fixed;
         arma::uword N;
         
-        Rcout << "  Constant info:" << endl;
-        
-        Rcout << "  * Resistances: (";
-        Rcout << pop_info.attack_surv(0) << ' ' << pop_info.attack_surv(1) << ')' << endl;
-        
-        arma::rowvec survs = arma::diagvec(pop_info.leslie, -1).t();
-        arma::rowvec fecs = pop_info.leslie(0, arma::span(1, pop_info.leslie.n_cols - 1));
-        
-        N = std::min(static_cast<arma::uword>(6), survs.n_elem);
-        Rcout << "  * Survivals:   (";
-        for (unsigned i = 0; i < N; i++) Rcout << survs(i) << ' ';
-        if (pop_info.leslie.n_rows > N) Rcout << "...";
-        Rcout << ')' << endl;
-        
-        Rcout << "  * Fecundities: (";
-        for (unsigned i = 0; i < N; i++) Rcout << fecs(i) << ' ';
-        if (pop_info.leslie.n_rows > N) Rcout << "...";
-        Rcout << ')' << endl;
+        pop_info.show();
         
         Rcout << endl;
         

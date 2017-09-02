@@ -16,6 +16,7 @@ load(file = 'under_constr/og_parameters.rda')
 # Resistant aphid line info
 # -------
 res_line <- make_const_pop(
+    "resistant",
     attack_surv = attack_surv,
     aphid_density_0 = prop_resist * init_x,
     aphid_instar_days = instar_days$high,
@@ -41,6 +42,7 @@ x
 # -------
 # Difference is no resistance, higher reproduction, higher starting density
 sus_line <- make_const_pop(
+    "susceptible",
     aphid_density_0 = (1 - prop_resist) * init_x,
     aphid_instar_days = instar_days$high,
     aphid_surv_juv = surv_juv$high,
