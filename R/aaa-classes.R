@@ -1,13 +1,11 @@
 
-# Rcpp::loadModule("pop_nums_mod", TRUE)
-Rcpp::loadModule("const_pop_mod", TRUE)
-# Rcpp::loadModule("aphid_line_mod", TRUE)
+Rcpp::loadModule("aphid_wasp_mod", TRUE)
 
 
-#' Create an const_pop object from input parameters.
+#' Create an aphid_wasp object from input parameters.
 #'
 #' @param aphid_name Name of aphid line. Used for combining aphid numbers for dispersal
-#'     among patches. Creating multiple `const_pop` objects with the `aphid_name`
+#'     among patches. Creating multiple `aphid_wasp` objects with the `aphid_name`
 #'     field but differing in other parameters simulates differences in environmental 
 #'     effects.
 #' @param aphid_density_0 Starting aphid density. Defaults to `populations$aphids_0`.
@@ -51,14 +49,14 @@ Rcpp::loadModule("const_pop_mod", TRUE)
 #'
 #' @return
 #' 
-#' Reference class 'Rcpp_const_pop' [package "sap"] with 24 fields
+#' Reference class 'Rcpp_aphid_wasp' [package "sap"] with 24 fields
 #' 
 #' @export
 #'
 #' @examples
 #' 
 #' # Susceptible aphid line info
-#' sus_line <- make_const_pop(
+#' sus_line <- make_aphid_wasp(
 #'     "susceptible",
 #'     aphid_density_0 = (1 - sap::populations$prop_resist) * 
 #'         sap::populations$aphids_0)
@@ -68,14 +66,14 @@ Rcpp::loadModule("const_pop_mod", TRUE)
 #' # Resistant aphid line info
 #' # Differences from susceptible are resistance, lower reproduction, and 
 #' # lower starting density
-#' res_line <- make_const_pop(
+#' res_line <- make_aphid_wasp(
 #'     "resistant",
 #'     attack_surv = sap::wasp_attack$attack_surv,
 #'     aphid_density_0 = sap::populations$prop_resist * sap::populations$aphids_0,
 #'     aphid_repro = sap::populations$repro$low)
 #' res_line
 #' 
-make_const_pop <- function(
+make_aphid_wasp <- function(
     aphid_name,
     aphid_density_0 = populations$aphids_0, 
     aphid_surv_juv = populations$surv_juv$high, 
@@ -132,7 +130,7 @@ make_const_pop <- function(
     L[["disp_start"]] = disp_start;
     L[["pred_rate"]] = pred_rate;
     
-    awi = new(const_pop, L)
+    awi = new(aphid_wasp, L)
     
     return(awi)
 }

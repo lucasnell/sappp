@@ -8,7 +8,7 @@ devtools::load_all()
 # -------
 # Susceptible aphid line info
 # -------
-sus_line <- make_const_pop(
+sus_line <- make_aphid_wasp(
     "susceptible",
     aphid_density_0 = (1 - sap::populations$prop_resist) * sap::populations$aphids_0)
 sus_line
@@ -19,15 +19,15 @@ sus_line
 # Resistant aphid line info
 # -------
 # Difference is resistance, lower reproduction, and lower starting density
-res_line <- make_const_pop(
+res_line <- make_aphid_wasp(
     "resistant",
     attack_surv = sap::wasp_attack$attack_surv,
     aphid_density_0 = sap::populations$prop_resist * sap::populations$aphids_0,
     aphid_repro = sap::populations$repro$low)
 res_line
 
-x <- new(aphid_line, res_line)
-x
+
+
 
 
 Rcpp::sourceCpp(code = 
