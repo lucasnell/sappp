@@ -10,14 +10,10 @@
 using namespace Rcpp;
 
 
-RcppExport SEXP _rcpp_module_boot_pop_nums_mod();
 RcppExport SEXP _rcpp_module_boot_const_pop_mod();
-RcppExport SEXP _rcpp_module_boot_aphid_line_mod();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rcpp_module_boot_pop_nums_mod", (DL_FUNC) &_rcpp_module_boot_pop_nums_mod, 0},
     {"_rcpp_module_boot_const_pop_mod", (DL_FUNC) &_rcpp_module_boot_const_pop_mod, 0},
-    {"_rcpp_module_boot_aphid_line_mod", (DL_FUNC) &_rcpp_module_boot_aphid_line_mod, 0},
     {NULL, NULL, 0}
 };
 

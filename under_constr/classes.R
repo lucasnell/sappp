@@ -30,7 +30,22 @@ x <- new(aphid_line, res_line)
 x
 
 
+Rcpp::sourceCpp(code = 
+"
+#include <RcppArmadillo.h>
+//[[Rcpp::depends(RcppArmadillo)]]
 
+
+//[[Rcpp::export]]
+arma::vec foo() {
+    arma::vec out = 50.5 * arma::join_cols(arma::ones<arma::vec>(1),
+                                           arma::zeros<arma::vec>(10));
+    return out;
+}
+
+")
+
+foo()
 
 
 
