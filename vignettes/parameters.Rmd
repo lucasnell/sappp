@@ -1,10 +1,10 @@
 ---
-title: "Starting Parameters"
+title: "sap parameters"
 author: "Lucas A. Nell"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Starting Parameters}
+  %\VignetteIndexEntry{sap parameters}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

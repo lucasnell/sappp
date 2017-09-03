@@ -155,25 +155,10 @@ public:
     // --------
 
     const string aphid_name;    // unique identifying name for this aphid line
-    
-    // // Aphid population
-    // AphidPop aphids;
-    // 
-    // // Wasp population
-    // WaspPop wasps;
-    // 
-    // // Wasp attack
-    // WaspAttack attacks;
-    // 
-    // // Process error
-    // ProcessError errors;
-    // 
-    // // Environment: harvest, dispersal, and predation
-    // Environ envir;
 
 
     // --------
-    // Constructors:
+    // Constructor:
     // --------
     
     AphidWasp(string aphid_name_, List par_list)
@@ -184,12 +169,6 @@ public:
           Environ::Environ(par_list),
           aphid_name(aphid_name_) {};
     
-    // using AphidPop::AphidPop;
-    // using WaspPop::WaspPop;
-    // using WaspAttack::WaspAttack;
-    // using ProcessError::ProcessError;
-    // using Environ::Environ;
-
     void show() const {
         arma::rowvec survs = arma::diagvec(leslie, -1).t();
         arma::rowvec fecs = leslie(0, arma::span(1, leslie.n_cols - 1));

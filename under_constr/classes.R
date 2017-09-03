@@ -15,6 +15,7 @@ sus_line
 
 
 
+
 # -------
 # Resistant aphid line info
 # -------
