@@ -148,8 +148,6 @@ struct wasp_pop {
     arma::vec Y_t;                // Wasp density at time t
     arma::vec Y_t1;               // Wasp density at time t+1
     
-        return;
-    }
     // Constructor
     // wasp_pop(arma::vec Y_0_, double sex_ratio_, double K_y_, double s_y_, 
     //          arma::uvec mum_days_, uint n_stages_) 
@@ -160,7 +158,10 @@ struct wasp_pop {
     wasp_pop(List par_list) 
         : Y_0(arma::join_cols(
                 arma::zeros<arma::vec>(arma::sum(as<arma::uvec>(par_list["mum_days"]))),
+                as<double>(par_list["wasp_density_0"]) * arma::ones<arma::vec>(1))),
           sex_ratio(as<double>(par_list["sex_ratio"])), 
+          K_y(as<double>(par_list["K_y"])), 
+          s_y(as<double>(par_list["s_y"])), 
           mum_days(as<arma::uvec>(par_list["mum_days"])),
           n_stages(arma::sum(mum_days) + 1) {};
 
@@ -172,6 +173,10 @@ struct wasp_attack {
     const arma::vec rel_attack;   // relative wasp attack rates by aphid stage
     const double a;               // overall parasitoid attack rate
     const double k;               // aggregation parameter of the nbinom distribution
+    const double h;               // parasitoid attack rate handling time
+    const arma::vec attack_surv;  // survival rates of singly & multiply attacked aphids
+    
+    // Changing through time
     arma::vec A;                  // attack probabilities at time t
     
     // Constructor
@@ -179,6 +184,27 @@ struct wasp_attack {
     //             arma::vec attack_surv_, arma::vec A_) 
     //     : rel_attack(rel_attack_), a(a_), k(k_), h(h_), attack_surv(attack_surv_), 
     //       A(A_) {};
+    
+    wasp_attack(List par_list) 
+        : rel_attack(as<arma::vec>(par_list["rel_attack"])),
+          a(as<double>(par_list["a"])), 
+          k(as<double>(par_list["k"])), 
+          h(as<double>(par_list["h"])), 
+          attack_surv(as<arma::vec>(par_list["attack_surv"])),
+          A(arma::zeros<arma::vec>(rel_attack.n_elem)) {};
+    
+};
+
+
+// Process error
+struct process_error {
+    const double sigma_x;         // environmental standard deviation for aphids
+    const double sigma_y;         // environmental standard deviation for parasitoids
+    const double rho;             // environmental correlation among instars
+    const double demog_mult;      // multiplier for demographic stochasticity
+    
+    // Constructor
+    // process_error(double sigma_x_, double sigma_y_, double rho_, double demog_mult_) 
     //     : sigma_x(sigma_x_), sigma_y(sigma_y_), rho(rho_), demog_mult(demog_mult_) {};
     
     process_error(List par_list) 
