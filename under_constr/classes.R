@@ -8,7 +8,7 @@ devtools::load_all()
 # -------
 # Susceptible aphid line info
 # -------
-sus_line <- make_aphid_wasp(
+sus_line <- make_AphidWasp(
     "susceptible",
     aphid_density_0 = (1 - sap::populations$prop_resist) * sap::populations$aphids_0)
 sus_line
@@ -19,33 +19,12 @@ sus_line
 # Resistant aphid line info
 # -------
 # Difference is resistance, lower reproduction, and lower starting density
-res_line <- make_aphid_wasp(
+res_line <- make_AphidWasp(
     "resistant",
     attack_surv = sap::wasp_attack$attack_surv,
     aphid_density_0 = sap::populations$prop_resist * sap::populations$aphids_0,
     aphid_repro = sap::populations$repro$low)
 res_line
-
-
-
-
-
-Rcpp::sourceCpp(code = 
-"
-#include <RcppArmadillo.h>
-//[[Rcpp::depends(RcppArmadillo)]]
-
-
-//[[Rcpp::export]]
-arma::vec foo() {
-    arma::vec out = 50.5 * arma::join_cols(arma::ones<arma::vec>(1),
-                                           arma::zeros<arma::vec>(10));
-    return out;
-}
-
-")
-
-foo()
 
 
 

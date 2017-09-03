@@ -1,11 +1,11 @@
 
-Rcpp::loadModule("aphid_wasp_mod", TRUE)
+Rcpp::loadModule("AphidWasp_module", TRUE)
 
 
-#' Create an aphid_wasp object from input parameters.
+#' Create an AphidWasp object from input parameters.
 #'
 #' @param aphid_name Name of aphid line. Used for combining aphid numbers for dispersal
-#'     among patches. Creating multiple `aphid_wasp` objects with the `aphid_name`
+#'     among patches. Creating multiple `AphidWasp` objects with the `aphid_name`
 #'     field but differing in other parameters simulates differences in environmental 
 #'     effects.
 #' @param aphid_density_0 Starting aphid density. Defaults to `populations$aphids_0`.
@@ -49,14 +49,14 @@ Rcpp::loadModule("aphid_wasp_mod", TRUE)
 #'
 #' @return
 #' 
-#' Reference class 'Rcpp_aphid_wasp' [package "sap"] with 24 fields
+#' Reference class 'Rcpp_AphidWasp' [package "sap"] with 24 fields
 #' 
 #' @export
 #'
 #' @examples
 #' 
 #' # Susceptible aphid line info
-#' sus_line <- make_aphid_wasp(
+#' sus_line <- make_AphidWasp(
 #'     "susceptible",
 #'     aphid_density_0 = (1 - sap::populations$prop_resist) * 
 #'         sap::populations$aphids_0)
@@ -66,14 +66,14 @@ Rcpp::loadModule("aphid_wasp_mod", TRUE)
 #' # Resistant aphid line info
 #' # Differences from susceptible are resistance, lower reproduction, and 
 #' # lower starting density
-#' res_line <- make_aphid_wasp(
+#' res_line <- make_AphidWasp(
 #'     "resistant",
 #'     attack_surv = sap::wasp_attack$attack_surv,
 #'     aphid_density_0 = sap::populations$prop_resist * sap::populations$aphids_0,
 #'     aphid_repro = sap::populations$repro$low)
 #' res_line
 #' 
-make_aphid_wasp <- function(
+make_AphidWasp <- function(
     aphid_name,
     aphid_density_0 = populations$aphids_0, 
     aphid_surv_juv = populations$surv_juv$high, 
@@ -103,7 +103,7 @@ make_aphid_wasp <- function(
     
     L = list()
     
-    L[["aphid_name"]] = aphid_name;
+    # L[["aphid_name"]] = aphid_name;
     L[["instar_days"]] = aphid_instar_days;
     L[["surv_juv"]] = aphid_surv_juv;
     L[["surv_adult"]] = aphid_surv_adult;
@@ -130,7 +130,7 @@ make_aphid_wasp <- function(
     L[["disp_start"]] = disp_start;
     L[["pred_rate"]] = pred_rate;
     
-    awi = new(aphid_wasp, L)
+    awi = new(AphidWasp, aphid_name, L)
     
     return(awi)
 }
