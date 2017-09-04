@@ -1,11 +1,13 @@
 
-Rcpp::loadModule("AphidWasp_module", TRUE)
+Rcpp::loadModule("sap_module", TRUE)
 
 
 #' Create an AphidWasp object from input parameters.
 #' 
-#' Most arguments are \code{NULL} by defaults, which means the output object
+#' Most arguments are \code{NULL} by default, which means the output object
 #' will have values defined in \code{vignette("parameters")}.
+#' When multiple values are present in the \code{vignette("parameters")} parameters,
+#' defaults here are those for high growth rates and high temperatures.
 #'
 #' @param aphid_name Name of aphid line. Used for combining aphid numbers for dispersal
 #'     among patches. Creating multiple `AphidWasp` objects with the `aphid_name`
@@ -38,13 +40,13 @@ Rcpp::loadModule("AphidWasp_module", TRUE)
 #' @param h Parasitoid attack rate handling time. 
 #'     Defaults to \code{NULL}.
 #' @param attack_surv Vector of length 2 representing survival rates of singly & 
-#'     multiply attacked aphids, respectively. Defaults to `numeric(2)`.
+#'     multiply attacked aphids, respectively. Defaults to \code{numeric(2)}.
 #' @param sigma_x Environmental standard deviation for aphids.
 #'     Defaults to \code{NULL}.
 #' @param sigma_y Environmental standard deviation for parasitoids.
 #'     Defaults to \code{NULL}.
 #' @param rho Environmental correlation among instars. Defaults to \code{NULL}.
-#' @param demog_mult Multiplier for demographic stochasticity. Defaults to `1.0`.
+#' @param demog_mult Multiplier for demographic stochasticity. Defaults to \code{1.0}.
 #' @param harvest_surv Survival rate for living aphids during a harvest. 
 #'     Defaults to \code{NULL}.
 #' @param disp_aphid Dispersal rate for aphids. Defaults to \code{NULL}.
@@ -55,85 +57,48 @@ Rcpp::loadModule("AphidWasp_module", TRUE)
 #'
 #' @return
 #' 
-#' \code{Reference class 'Rcpp_AphidWasp' [package "sap"] with 29 fields}
+#' List with all necessary info to create an AphidWasp object
 #' 
 #' @export
 #'
-#' @examples
 #' 
-#' # Susceptible aphid line info
-#' sus_line <- make_AphidWasp(
-#'     "susceptible",
-#'     aphid_density_0 = (1 - sap::populations$prop_resist) * 
-#'         sap::populations$aphids_0)
-#' sus_line
-#' 
-#' 
-#' # Resistant aphid line info
-#' # Differences from susceptible are resistance, lower reproduction, and 
-#' # lower starting density
-#' res_line <- make_AphidWasp(
-#'     "resistant",
-#'     attack_surv = sap::wasp_attack$attack_surv,
-#'     aphid_density_0 = sap::populations$prop_resist * sap::populations$aphids_0,
-#'     aphid_repro = sap::populations$repro$low)
-#' res_line
-#' 
-make_AphidWasp <- function(
-    aphid_name,
-    aphid_density_0 = NULL, 
-    aphid_surv_juv = NULL, 
-    aphid_surv_adult = NULL, 
-    aphid_repro = NULL, 
-    K = NULL, 
-    wasp_density_0 = NULL, 
-    K_y = NULL, 
-    s_y = NULL, 
-    wasp_sex_ratio = NULL, 
-    aphid_instar_days = NULL, 
-    mum_days = NULL, 
-    rel_attack = NULL, 
-    a = NULL, 
-    k = NULL, 
-    h = NULL, 
-    attack_surv = numeric(2), 
-    sigma_x = NULL, 
-    sigma_y = NULL, 
-    rho = NULL, 
-    demog_mult = 1.0, 
-    harvest_surv = NULL, 
-    disp_aphid = NULL, 
-    disp_wasp = NULL, 
-    disp_start = NULL, 
-    pred_rate = NULL) {
+AphidWasp_one_patch <- function(
+    aphid_name, aphid_density_0 = NULL, aphid_surv_juv = NULL, aphid_surv_adult = NULL, 
+    aphid_repro = NULL, K = NULL, wasp_density_0 = NULL, K_y = NULL, s_y = NULL, 
+    wasp_sex_ratio = NULL, aphid_instar_days = NULL, mum_days = NULL, rel_attack = NULL, 
+    a = NULL, k = NULL, h = NULL, attack_surv = numeric(2), sigma_x = NULL, 
+    sigma_y = NULL, rho = NULL, demog_mult = 1.0, harvest_surv = NULL, disp_aphid = NULL,
+    disp_wasp = NULL, disp_start = NULL, pred_rate = NULL) {
     
-    if (is.null(aphid_density_0)) aphid_density_0 = sap::populations$aphids_0
-    if (is.null(aphid_surv_juv)) aphid_surv_juv = sap::populations$surv_juv$high
-    if (is.null(aphid_surv_adult)) aphid_surv_adult = sap::populations$surv_adult$high
-    if (is.null(aphid_repro)) aphid_repro = sap::populations$repro$high
-    if (is.null(K)) K = sap::populations$K
-    if (is.null(wasp_density_0)) wasp_density_0 = sap::populations$wasps_0
-    if (is.null(K_y)) K_y = sap::populations$K_y
-    if (is.null(s_y)) s_y = sap::populations$s_y
-    if (is.null(wasp_sex_ratio)) wasp_sex_ratio = sap::populations$sex_ratio
-    if (is.null(aphid_instar_days)) aphid_instar_days = sap::dev_times$instar_days$highT
-    if (is.null(mum_days)) mum_days = sap::dev_times$mum_days
-    if (is.null(rel_attack)) rel_attack = sap::wasp_attack$rel_attack$highT
-    if (is.null(a)) a = sap::wasp_attack$a
-    if (is.null(k)) k = sap::wasp_attack$k
-    if (is.null(h)) h = sap::wasp_attack$h
-    if (is.null(sigma_x)) sigma_x = sap::environ$sigma_x
-    if (is.null(sigma_y)) sigma_y = sap::environ$sigma_y
-    if (is.null(rho)) rho = sap::environ$rho
-    if (is.null(harvest_surv)) harvest_surv = sap::environ$harvest_surv
-    if (is.null(disp_aphid)) disp_aphid = sap::environ$disp_aphid
-    if (is.null(disp_wasp)) disp_wasp = sap::environ$disp_wasp
-    if (is.null(disp_start)) disp_start = sap::environ$disp_start$highT
-    if (is.null(pred_rate)) pred_rate = sap::environ$pred_rate
+    if (is.null(aphid_density_0)) aphid_density_0 <- sap::populations$aphids_0
+    if (is.null(aphid_surv_juv)) aphid_surv_juv <- sap::populations$surv_juv$high
+    if (is.null(aphid_surv_adult)) aphid_surv_adult <- sap::populations$surv_adult$high
+    if (is.null(aphid_repro)) aphid_repro <- sap::populations$repro$high
+    if (is.null(K)) K <- sap::populations$K
+    if (is.null(wasp_density_0)) wasp_density_0 <- sap::populations$wasps_0
+    if (is.null(K_y)) K_y <- sap::populations$K_y
+    if (is.null(s_y)) s_y <- sap::populations$s_y
+    if (is.null(wasp_sex_ratio)) wasp_sex_ratio <- sap::populations$sex_ratio
+    if (is.null(aphid_instar_days)) aphid_instar_days <- sap::dev_times$instar_days$highT
+    if (is.null(mum_days)) mum_days <- sap::dev_times$mum_days
+    if (is.null(rel_attack)) rel_attack <- sap::wasp_attack$rel_attack$highT
+    if (is.null(a)) a <- sap::wasp_attack$a
+    if (is.null(k)) k <- sap::wasp_attack$k
+    if (is.null(h)) h <- sap::wasp_attack$h
+    if (is.null(sigma_x)) sigma_x <- sap::environ$sigma_x
+    if (is.null(sigma_y)) sigma_y <- sap::environ$sigma_y
+    if (is.null(rho)) rho <- sap::environ$rho
+    if (is.null(harvest_surv)) harvest_surv <- sap::environ$harvest_surv
+    if (is.null(disp_aphid)) disp_aphid <- sap::environ$disp_aphid
+    if (is.null(disp_wasp)) disp_wasp <- sap::environ$disp_wasp
+    if (is.null(disp_start)) disp_start <- sap::environ$disp_start$highT
+    if (is.null(pred_rate)) pred_rate <- sap::environ$pred_rate
     
+    # Rcpp modules (C++ classes Rcpp converts to R reference classes)
+    # can only take <= 6 input arguments, so I'm combining all these arguments into a 
+    # single list
     L = list()
-    
-    # L[["aphid_name"]] = aphid_name;
+    L[["aphid_name"]] = aphid_name
     L[["instar_days"]] = aphid_instar_days;
     L[["surv_juv"]] = aphid_surv_juv;
     L[["surv_adult"]] = aphid_surv_adult;
@@ -160,9 +125,46 @@ make_AphidWasp <- function(
     L[["disp_start"]] = disp_start;
     L[["pred_rate"]] = pred_rate;
     
-    awi = new(AphidWasp, aphid_name, L, sample.int(2^31-1, 1))
+    # # The random integer is to seed the AphidWasp's random number generator
+    # awi = new(AphidWasp, L)
     
-    return(awi)
+    return(L)
 }
 
 
+
+
+
+
+
+# Create all parameter lists for all patches and one aphid line
+multiply_par_lists <- function(.aphid_name, .n_patches, ...) {
+    if (missing(...)) {
+        return(rep(list(list(aphid_name = .aphid_name)), .n_patches))
+    }
+    # Repeat each argument .n_patches times
+    par_list <- lapply(
+        list(...), 
+        function(.par) {
+            if (is.list(.par)) {
+                if ((.n_patches %% length(.par)) != 0) {
+                    stop(paste("length of all arguments must be a",
+                               "factor of .n_patches"))
+                }
+                n_reps <- .n_patches / length(.par)
+                outl <- lapply(.par, function(y) rep(list(y), n_reps))
+                outl <- unlist(outl, recursive = FALSE)
+            } else {
+                outl <- rep(list(.par), .n_patches)
+            }
+            return(outl)
+        })
+    # Combine each argument so I now have a list with .n_patches items, each of 
+    # which has all the input arguments
+    par_list <- lapply(1:.n_patches, function(i) {
+        outl <- c(.aphid_name, lapply(names(par_list), function(n) par_list[[n]][[i]]))
+        names(outl) <- c("aphid_name", names(par_list))
+        return(outl)
+    })
+    return(par_list)
+}

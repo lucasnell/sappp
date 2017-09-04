@@ -1,7 +1,23 @@
 library(Rcpp)
 # devtools::clean_dll()
-compileAttributes()
-devtools::load_all()
+compileAttributes(); devtools::load_all()
+
+
+
+
+
+multiply_par_lists('test', 4, a = c(9, 8), b = list(9, 8, 7, 6))
+
+multiply_par_lists('test', 2)
+
+
+
+# AphidWasp_one_patch()
+
+
+
+
+
 
 
 
@@ -12,7 +28,6 @@ sus_line <- make_AphidWasp(
     "susceptible",
     aphid_density_0 = (1 - sap::populations$prop_resist) * sap::populations$aphids_0)
 sus_line
-
 
 
 
