@@ -35,17 +35,23 @@ sourceCpp(code =
 //[[Rcpp::depends(RcppArmadillo)]]
 //[[Rcpp::plugins(cpp11)]]
 
+using namespace Rcpp;
+
 //[[Rcpp::export]]
-bool do_harvest(uint t) {
-    uint harvest_offset = 10;
-    uint harvest_period = 30;
-    if (t < harvest_offset) return false;
-    uint a = t - harvest_offset;
-    uint b = a % harvest_period;
-    return b == 0;
+void test(uint rows, uint cols, uint slices, uint t, arma::mat m) {
+    arma::cube x(rows, cols, slices, arma::fill::randu);
+    x.print(Rcout);
+    // x.slice(s).print(Rcout);
+    for (arma::uword i = 0; i < x.n_slices; i++) x.slice(i).row(t) = m.row(i);
+    x..tube(arma::span(t, t), arma::span()).print(Rcout);
+    return;
 }
 ")
 
+test(4, 3, 3, 1, matrix(11:19, 3, 3, byrow = TRUE))
+
+
+array(0, c(4, 3, 2))
 
 
 which(sapply(1:100, do_harvest))
