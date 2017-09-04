@@ -5,17 +5,9 @@
 # 
 
 
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-# library(Matrix) # for sparse matrices
 
-# Provides functions instar_to_stage, leslie_matrix, leslie_sad, attack_probs, 
-# parasitoid_abunds
-Rcpp::sourceCpp('high_tunnel.cpp')
 
-source('parameters.R')
-
+source('under_constr/parameters.R')
 
 
 
@@ -180,9 +172,11 @@ Xs <- out_list$Xs
 Yr <- out_list$Yr
 Ys <- out_list$Ys
 
-# base_p()
 
-gg_p()
+par(mar = c(b = 4, l = 2.5, t = 1, r = 1))
+base_p()
+
+# gg_p()
 
 
 

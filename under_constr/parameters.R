@@ -75,10 +75,14 @@ repro <- list(
 
 # Relative attack rate on the different instars from Ives et al 1999
 # `instar_to_stage` converts these values from per-instar to per-day
-rel_attack <- list(low = instar_to_stage(rbind(0.12, 0.27, 0.39, 0.16, 0.06), 
-                                         n_aphid_stages, instar_days$low),
-                   high = instar_to_stage(rbind(0.12, 0.27, 0.39, 0.16, 0.06),
-                                          n_aphid_stages, instar_days$high))
+rel_attack <- list(low = c(mapply(c(0.12, 0.27, 0.39, 0.16, 0.06), instar_days$low, 
+                                  FUN = rep), 
+                           rep(0, n_aphid_stages - sum(instar_days$low)),
+                           recursive = TRUE),
+                   high = c(mapply(c(0.12, 0.27, 0.39, 0.16, 0.06), instar_days$high, 
+                                   FUN = rep), 
+                            rep(0, n_aphid_stages - sum(instar_days$high)),
+                            recursive = TRUE))
 
 
 sex_ratio <- 0.5
@@ -101,24 +105,23 @@ attack_surv <- cbind(0.9, 0.6)
 
 
 
-# # =============================================
-# # set up Leslie matrices
-# # =============================================
-# 
-# # resistant clones
-# # ------
-# leslie_r <- leslie_matrix(n_aphid_stages, instar_days[[clone[1,1]]],
-#                           surv_juv[[clone[1,1]]],
-#                           surv_adult[[clone[1,2]]], repro[[clone[1,2]]])
-# sad_r <- leslie_sad(leslie_r)
-# 
-# 
-# # susceptible clones
-# # ------
-# leslie_s <- leslie_matrix(n_aphid_stages, instar_days[[clone[2,1]]],
-#                           surv_juv[[clone[2,1]]],
-#                           surv_adult[[clone[2,2]]], repro[[clone[2,2]]])
-# sad_s <- leslie_sad(leslie_s)
+# =============================================
+# set up Leslie matrices
+# =============================================
+
+# resistant clones
+# ------
+leslie_r <- leslie_matrix2(n_aphid_stages, instar_days[[clone[1,1]]],
+                          surv_juv[[clone[1,1]]],
+                          surv_adult[[clone[1,2]]], repro[[clone[1,2]]])
+sad_r <- leslie_sad2(leslie_r)
+
+# susceptible clones
+# ------
+leslie_s <- leslie_matrix2(n_aphid_stages, instar_days[[clone[2,1]]],
+                          surv_juv[[clone[2,1]]],
+                          surv_adult[[clone[2,2]]], repro[[clone[2,2]]])
+sad_s <- leslie_sad2(leslie_s)
 
 
 
@@ -156,13 +159,13 @@ prop_resist <- 0.05
 # run program
 # =============================================
 
-# # Initial densities of aphids by stage
-# X_0r <- prop_resist * init_x * sad_r %*% matrix(1,1,n_fields)
-# X_0s <- (1-prop_resist) * init_x * sad_s %*% matrix(1,1,n_fields)
+# Initial densities of aphids by stage
+X_0r <- prop_resist * init_x * sad_r %*% matrix(1,1,n_fields)
+X_0s <- (1-prop_resist) * init_x * sad_s %*% matrix(1,1,n_fields)
 
-# # Initial parasitoid densities by stage (starting with no parasitized aphids or mummies)
-# Y_0r <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
-# Y_0s <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
+# Initial parasitoid densities by stage (starting with no parasitized aphids or mummies)
+Y_0r <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
+Y_0s <- init_y * rbind(matrix(0, sum(mum_days), n_fields), c(1, 1))
 
 # Setting total time (days) and times for harvesting
 max_time <- cycle_length * (1 + n_cycles)
@@ -171,10 +174,9 @@ harvest_times <- rbind(c(cycle_length * 1:n_cycles),
                          cycle_length * n_cycles))
 
 
-# 
-# # leslie_r <- leslie_matrix(n_aphid_stages, instar_days$high,
-# #                           surv_juv$high, surv_adult$high, repro$low)
-# # prop_resist * init_x * leslie_sad(leslie_r)
+
+
+
 # 
 # 
 # # =====================================================================================
@@ -244,28 +246,28 @@ harvest_times <- rbind(c(cycle_length * 1:n_cycles),
 # # ====================================================================================
 # 
 # 
-# base_p <- function(ymult = 1) {
-#     Ymax <- ymult * max(Xr[,1]+Xs[,1])
-#     min_time <- 1
-#     
-#     # Figure 1
-#     plot(1:(max_time-min_time+1),Xr[min_time:max_time,1]+Xs[min_time:max_time,1],
-#          type = 'l', col = 'dodgerblue', ylab = '', xlab = 'time', main = '')
-#     lines(1:(max_time-min_time+1),Xr[min_time:max_time,2]+Xs[min_time:max_time,2],
-#           col = 'dodgerblue', lty = 2)
-#     lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]),
-#           col = 'firebrick')
-#     lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]),
-#           col = 'firebrick', lty = 2)
-#     lines(1:(max_time-min_time+1),Ymax*rowSums(Xr[min_time:max_time,])/
-#               (rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])),
-#           col = 'black')
-#     
-#     # Blue is aphid abundances
-#     # Red is parasitoid abundances
-#     # Black is (resistant aphids) / (total aphids)
-#     # Dotted lines are field # 2 (different harvesting regime)
-# }
+base_p <- function(ymult = 1) {
+    Ymax <- ymult * max(Xr[,1]+Xs[,1])
+    min_time <- 1
+
+    # Figure 1
+    plot(1:(max_time-min_time+1),Xr[min_time:max_time,1]+Xs[min_time:max_time,1],
+         type = 'l', col = 'dodgerblue', ylab = '', xlab = 'time', main = '')
+    lines(1:(max_time-min_time+1),Xr[min_time:max_time,2]+Xs[min_time:max_time,2],
+          col = 'dodgerblue', lty = 2)
+    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1]),
+          col = 'firebrick')
+    lines(1:(max_time-min_time+1),Ymax * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2]),
+          col = 'firebrick', lty = 2)
+    lines(1:(max_time-min_time+1),Ymax*rowSums(Xr[min_time:max_time,])/
+              (rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])),
+          col = 'black')
+
+    # Blue is aphid abundances
+    # Red is parasitoid abundances
+    # Black is (resistant aphids) / (total aphids)
+    # Dotted lines are field # 2 (different harvesting regime)
+}
 # 
 # 
 # 
