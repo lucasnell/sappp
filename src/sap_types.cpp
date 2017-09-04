@@ -66,12 +66,12 @@ void SimSummary::fill(uint t_,
 // ======================================================================================
 // ======================================================================================
 
+// Using X and Y at time t+1 bc these get calculated before X and Y get iterated
 // Aphid population
 // Total (non-parasitized) aphids
 double AphidPop::total_aphids() {
     return arma::sum(X_t1);
 }
-
 
 // Wasp population
 // Total living, but parasitized aphids
@@ -194,15 +194,8 @@ void AphidWasp::process_error(double z, double Y_m) {
         (rho * arma::mat(living_aphids,living_aphids,arma::fill::ones) + 
         (1-rho) * arma::mat(living_aphids,living_aphids,arma::fill::eye));
     
-    // Below is not needed since they're already zeros
-    // // Mummy process error, turning back to zero
-    // Se(arma::span(living_aphids,Se.n_rows-2), 
-    //    arma::span(living_aphids,Se.n_cols-2)).fill(0);
-    // Se(arma::span(0,living_aphids-1), 
-    //    arma::span(living_aphids,Se.n_cols-2)).fill(0);
-    // Se(arma::span(living_aphids,Se.n_rows-2), 
-    //    arma::span(0,living_aphids-1)).fill(0);
-    
+    // Mummy process error needs no action because it's already zero
+
     // Adult parasitoid process error
     Se(Se.n_rows-1, Se.n_cols-1) = sigma_y*sigma_y + 
         demog_mult * std::min(0.5, 1 / std::abs(1 + Y_m));
@@ -321,8 +314,8 @@ double OnePatch::S_y(double K_y) {
 
 void OnePatch::show() {
     Rcout << "< Info for one patch w " << pops.size() << " aphid-wasp combos >" << endl;
-    Rcout << "harvest period: " << harvest_period << endl;
-    Rcout << "harvest offset: " << harvest_offset << endl;
+    // Rcout << "harvest period: " << harvest_period << endl;
+    // Rcout << "harvest offset: " << harvest_offset << endl;
     Rcout << "Current numbers:" << endl;
     Rcout << "  - non-parasitized aphids: " << x << endl;
     Rcout << "  - living aphids:          " << z << endl;
@@ -332,10 +325,13 @@ void OnePatch::show() {
 
 // Boolean for whether to harvest at time t
 bool OnePatch::do_harvest(uint t) {
-    if (t < harvest_offset) return false;
-    uint a = t - harvest_offset;
-    uint b = a % harvest_period;
-    return b == 0;
+    // if (t < harvest_offset || harvest_period == 0 || t == 0) return false;
+    // uint a = t - harvest_offset;
+    // uint b = a % harvest_period;
+    // return b == 0;
+    vector<uint>::const_iterator iter = find(harvest_times.begin(), 
+                                             harvest_times.end(), t);
+    return iter != harvest_times.end();
 };
 
 
@@ -356,7 +352,7 @@ void OnePatch::iterate_patch(uint t) {
     
     // Update each AphidWasp object in pops
     for (AphidWasp& aw : pops) {
-        // Equivalent to S(z(t)) and S_y(z(t)) [no idea why equations are different]
+        // Equivalent to S(z(t)) and S_y(z(t))
         double St = S(aw.K);
         double S_yt = S_y(aw.K_y);
         // Update attack probabilities
@@ -365,8 +361,8 @@ void OnePatch::iterate_patch(uint t) {
         aw.iterate_X(St);
         aw.iterate_Y(S_yt);
         aw.process_error(z, Y_m);
-        bool do_harvest_ = do_harvest(t);
-        if (do_harvest_) aw.harvest();
+        bool harvest_bool = do_harvest(t);
+        if (harvest_bool) aw.harvest();
     }
     return;
 }
