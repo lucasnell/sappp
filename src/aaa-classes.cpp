@@ -30,8 +30,7 @@ RCPP_MODULE(sap_module) {
     ;
     
     class_<SimPatches>("SimPatches")
-        .constructor< vector<vector<List>>,vector<vector<uint>> >()
-        // vector<uint>,vector<uint> >()
+        .constructor< vector<vector<List>>,vector<uint>,vector<uint> >()
         .field_readonly("aphid_names", &SimPatches::aphid_names, 
             "vector of aphid names (same for all patches)")
         .field("t", &SimPatches::t, "current time")

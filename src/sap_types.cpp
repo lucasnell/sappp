@@ -353,13 +353,10 @@ void OnePatch::show() {
 
 // Boolean for whether to harvest at time t
 bool OnePatch::do_harvest(uint t) {
-    // if (t < harvest_offset || harvest_period == 0 || t == 0) return false;
-    // uint a = t - harvest_offset;
-    // uint b = a % harvest_period;
-    // return b == 0;
-    vector<uint>::const_iterator iter = find(harvest_times.begin(), 
-                                             harvest_times.end(), t);
-    return iter != harvest_times.end();
+    if (t < harvest_offset || harvest_period == 0 || t == 0) return false;
+    uint a = t - harvest_offset;
+    uint b = a % harvest_period;
+    return b == 0;
 };
 
 

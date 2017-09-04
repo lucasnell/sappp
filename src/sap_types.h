@@ -300,9 +300,8 @@ public:
     // -------
     // Members:
     // -------
-    // const uint harvest_period;          // time points between harvests
-    // const uint harvest_offset;          // time at which to begin harvests
-    const vector<uint> harvest_times;   // time points at which harvests occur
+    const uint harvest_period;          // time points between harvests
+    const uint harvest_offset;          // time at which to begin harvests
     double z;                           // Sum of all living aphids at time t
     double x;                           // Sum of non-parasitized aphids at time t
     double Y_m;                         // Total number of adult wasps
@@ -313,13 +312,11 @@ public:
     // -------
     
     OnePatch(vector<List> par_L, 
-             const vector<uint>& harvest_times_)
-        : harvest_times(harvest_times_),
+             const uint& harvest_period_,
+             const uint& harvest_offset_)
+         : harvest_period(harvest_period_),
+           harvest_offset(harvest_offset_),
           z(0.0), x(0.0), Y_m(0.0) {
-             // const uint& harvest_period_, 
-             // const uint& harvest_offset_)
-             // : harvest_period(harvest_period_), 
-             //   harvest_offset(harvest_offset_),
                
         for (uint i = 0; i < par_L.size(); i++) {
             AphidWasp aw(par_L[i]);
@@ -399,18 +396,16 @@ public:
     // I want them to be allowed to have different parameters, though, to
     // simulate environmental effects
     SimPatches(vector<vector<List>> par_L,
-               vector<vector<uint>> harvest_times)
+               vector<uint> harvest_periods,
+               vector<uint> harvest_offsets)
         : aphid_names(0), t(0) {
         
-               // vector<uint> harvest_periods,
-               // vector<uint> harvest_offsets)
         
-        // uint n_patches = harvest_periods.size();
-        uint n_patches = harvest_times.size();
+        uint n_patches = harvest_periods.size();
         
-        // if (n_patches != harvest_offsets.size()) {
-        //     stop("harvest_periods and harvest_offsets should have the same length.");
-        // }
+        if (n_patches != harvest_offsets.size()) {
+            stop("harvest_periods and harvest_offsets should have the same length.");
+        }
         
         // Going through first patch's info to get line names
         // They should be the same among patches
@@ -420,8 +415,7 @@ public:
         }
         
         for (uint i = 0; i < n_patches; i++) {
-            // OnePatch op(par_L[i], harvest_periods[i], harvest_offsets[i]);
-            OnePatch op(par_L[i], harvest_times[i]);
+            OnePatch op(par_L[i], harvest_periods[i], harvest_offsets[i]);
             // Checking that names are the same
             for (uint j = 0; j < op.pops.size(); j++) {
                 if (op.pops[j].aphid_name != aphid_names[j]) {

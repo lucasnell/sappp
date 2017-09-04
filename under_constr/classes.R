@@ -27,14 +27,6 @@ compileAttributes(); devtools::load_all()
 
 
 
-n_cycles <- 20
-cycle_length <- 30
-max_time <- cycle_length * (1 + n_cycles)
-harvest_times <- list(c(cycle_length * 1:n_cycles),
-                      c(cycle_length * 1, cycle_length * (2:(n_cycles-1)) - cycle_length/2,
-                         cycle_length * n_cycles))
-harvest_times <- lapply(harvest_times, function(x) head(x, -1))
-
 n_pops = 2
 n_patches = 2
 pl <- all_pop_lists(n_pops, n_patches, 
@@ -47,13 +39,13 @@ pl <- all_pop_lists(n_pops, n_patches,
                     aphid_density_0 = list(
                         (1 - sap::populations$prop_resist) * sap::populations$aphids_0,
                         sap::populations$prop_resist * sap::populations$aphids_0),
-                    # sigma_x = 0, sigma_y = 0, rho = 0, demog_mult = 0,
+                    sigma_x = 0, sigma_y = 0, rho = 0, demog_mult = 0,
                     attack_surv = list("susceptible", "resistant"), 
                     aphid_surv_adult = list('high', 'low'),
                     aphid_repro = list('high', 'low'))
-sp <- new(SimPatches, pl, harvest_times)
-          # rep(sap::environ$cycle_length, n_patches), rep(c(0,15), n_pops / 2))
-out <- sp$simulate(100, rng_seed = sample.int(2^31-1,1))
+sp <- new(SimPatches, pl, 
+          rep(sap::environ$cycle_length, n_patches), rep(c(0,15), n_pops / 2))
+out <- sp$simulate(630, rng_seed = sample.int(2^31-1,1))
 out
 
 # Figure 1
@@ -82,7 +74,7 @@ out
         col = 'black')
 }
 # Blue is aphid abundances
-# Red is parasitoid abundances
+# Red is parasitized-aphid (but alive) abundances
 # Black is (resistant aphids) / (total aphids)
 # Dotted lines are field # 2 (different harvesting regime)
 
