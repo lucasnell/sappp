@@ -4,11 +4,91 @@ compileAttributes(); devtools::load_all()
 
 
 
+# 
+# # Estimated values from paper (symbol; value from paper)
+# a <- 2.5        # parasitoid attack rate (a; 2.32)
+# K <- 0.0005     # aphid density dependence (K; 0.000467)
+# K_y <- 0.0006    # parasitized aphid density dependence (K_y; 0.00073319)
+# k <- 0.1811    # aggregation parameter of the negative binomial distribution (k; 0.35)
+# h <- 0.0363     # parasitoid attack rate handling time (h; 0.008, 0.029 at 27 deg C)
+# s_y <- 0.55      # parasitoid adult daily survival (s_y; 0.69)
+# sigma_x <- 0.44  # 0  # environmental standard deviation for aphids (sigma_x; 0.44)
+# sigma_y <- 0.35  # 0  # environmental standard deviation for parasitoids (sigma_y; 0.70)
+# rho <- 2 / (1 + exp(-sigma_y)) - 1  # environmental correlation among instars (rho; 1.0)
+# 
+# 
+# sap::wasp_attack$a
+# sap::populations$K
+# sap::populations$K_y
+# sap::wasp_attack$k
+# sap::wasp_attack$h
+# sap::populations$s_y
 
 
-multiply_par_lists('test', 4, a = c(9, 8), b = list(9, 8, 7, 6))
 
-multiply_par_lists('test', 2)
+
+n_cycles <- 20
+cycle_length <- 30
+max_time <- cycle_length * (1 + n_cycles)
+harvest_times <- list(c(cycle_length * 1:n_cycles),
+                      c(cycle_length * 1, cycle_length * (2:(n_cycles-1)) - cycle_length/2,
+                         cycle_length * n_cycles))
+harvest_times <- lapply(harvest_times, function(x) head(x, -1))
+
+n_pops = 2
+n_patches = 2
+pl <- all_pop_lists(n_pops, n_patches, 
+                    a = 2.5, 
+                    K = 0.0005, 
+                    K_y = 0.0006, 
+                    k = 0.1811, 
+                    h = 0.0363, 
+                    s_y = 0.55,
+                    aphid_density_0 = list(
+                        (1 - sap::populations$prop_resist) * sap::populations$aphids_0,
+                        sap::populations$prop_resist * sap::populations$aphids_0),
+                    # sigma_x = 0, sigma_y = 0, rho = 0, demog_mult = 0,
+                    attack_surv = list("susceptible", "resistant"), 
+                    aphid_surv_adult = list('high', 'low'),
+                    aphid_repro = list('high', 'low'))
+sp <- new(SimPatches, pl, harvest_times)
+          # rep(sap::environ$cycle_length, n_patches), rep(c(0,15), n_pops / 2))
+out <- sp$simulate(100, rng_seed = sample.int(2^31-1,1))
+
+
+# Figure 1
+{
+    par(mar = c(b = 4, l = 2.5, t = 1, r = 1))
+    # X is sum of all living aphids
+    Xr <- out$aphids[,2,] + out$parasit[,2,]
+    Xs <- out$aphids[,1,] + out$parasit[,1,]
+    # Y is proportion of live aphids that are parasitized
+    Yr <- out$parasit[,2,] / Xr
+    Ys <- out$parasit[,1,] / Xs
+    Ymax <- 1 * max(c(Xr[,1]+Xs[,1], Xr[,2]+Xs[,2]))
+    min_time <- 1
+    max_time <- min(630, nrow(Xr))
+    times <- 1:(max_time-min_time+1)
+    plot(times,Xr[min_time:max_time,1]+Xs[min_time:max_time,1],type = 'l', 
+         col = 'dodgerblue', ylab = '', xlab = 'time', main = '', ylim = c(1,Ymax))
+    lines(times,Xr[min_time:max_time,2]+Xs[min_time:max_time,2], 
+          col = 'dodgerblue', lty = 2)
+    lines(times,Ymax * (Yr[min_time:max_time,1]+Ys[min_time:max_time,1])/2, 
+          col = 'firebrick')
+    lines(times,Ymax * (Yr[min_time:max_time,2]+Ys[min_time:max_time,2])/2, 
+          col = 'firebrick', lty = 2)
+    lines(times,Ymax*rowSums(Xr[min_time:max_time,])/(
+        rowSums(Xr[min_time:max_time,]) + rowSums(Xs[min_time:max_time,])), 
+        col = 'black')
+}
+# Blue is aphid abundances
+# Red is parasitoid abundances
+# Black is (resistant aphids) / (total aphids)
+# Dotted lines are field # 2 (different harvesting regime)
+
+
+
+#
 
 
 
