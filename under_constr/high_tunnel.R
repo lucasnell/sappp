@@ -61,6 +61,7 @@ HighTunnelExptSimfunct <- function(
             Y_m <- Y_0r[nrow(Y_0r),i] + Y_0s[nrow(Y_0s),i]
             
             # Matrices of attack probabilities using equation 6 from paper
+            # iterate_A(double Y_m, double x)
             Ar <- attack_probs(a = a, p_i = rel_attack[[clone[1,1]]], 
                                Y_m = Y_m, x = x, h = h, k = k, 
                                attack_surv = attack_surv)
@@ -69,10 +70,12 @@ HighTunnelExptSimfunct <- function(
                                attack_surv = numeric(0))
             
             # X(t+1) (first line of equation 2; pred_rate was added after paper)
+            # iterate_X(double S)
             xtr <- (pred_rate * St * Ar) * as.matrix(LLr %*% X_0r[,i])
             xts <- (pred_rate * St * As) * as.matrix(LLs %*% X_0s[,i])
             
             # Filling in column of parasitoid stage abundances
+            # iterate_Y(double S_y)
             ytr <- parasitoid_abunds(S_y_zt = S_yt, A = Ar, L = LLr, X = X_0r[,i], 
                                      Y_t = Y_0r[,i], s_i = surv_juv[[clone[1,1]]], 
                                      s_y = s_y, m_1 = mum_days[1], sex_ratio = sex_ratio, 
@@ -83,6 +86,7 @@ HighTunnelExptSimfunct <- function(
                                      pred_rate = pred_rate)
             
 
+            # process_error(double z, double Y_m)
             error_list <- process_error(X_t1 = xtr, Y_t1 = ytr,
                                         X_t = X_0r[,i], Y_t = Y_0r[,i],
                                         sigma_x = sigma_x, sigma_y = sigma_y, rho = rho,
@@ -104,6 +108,7 @@ HighTunnelExptSimfunct <- function(
             yts <- error_list$wasps
             
             # Do harvesting if it's in the list of harvest times
+            # harvest()
             if (t %in% harvest_times[i,1:(ncol(harvest_times)-1)]) {
                 # Kill non-parasitized aphids
                 xtr <- harvest_surv * xtr

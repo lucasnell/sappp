@@ -160,7 +160,7 @@ make_AphidWasp <- function(
     L[["disp_start"]] = disp_start;
     L[["pred_rate"]] = pred_rate;
     
-    awi = new(AphidWasp, aphid_name, L)
+    awi = new(AphidWasp, aphid_name, L, sample.int(2^31-1, 1))
     
     return(awi)
 }

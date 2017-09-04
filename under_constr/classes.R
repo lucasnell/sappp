@@ -28,9 +28,27 @@ res_line <- make_AphidWasp(
 res_line
 
 
+sourceCpp(code = 
+"
+#include <RcppArmadillo.h>
+
+//[[Rcpp::depends(RcppArmadillo)]]
+//[[Rcpp::plugins(cpp11)]]
+
+//[[Rcpp::export]]
+bool do_harvest(uint t) {
+    uint harvest_offset = 10;
+    uint harvest_period = 30;
+    if (t < harvest_offset) return false;
+    uint a = t - harvest_offset;
+    uint b = a % harvest_period;
+    return b == 0;
+}
+")
 
 
 
+which(sapply(1:100, do_harvest))
 
 
 
