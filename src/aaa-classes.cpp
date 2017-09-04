@@ -26,6 +26,7 @@ RCPP_MODULE(sap_module) {
             "density of parasitized, but alive, aphids")
         .field("mummies", &SimSummary::mummies, "density of mummies")
         .field("wasps", &SimSummary::wasps, "density of adult wasps")
+        .method("show", &SimSummary::show, "summarize SimSummary object")
     ;
     
     class_<SimPatches>("SimPatches")

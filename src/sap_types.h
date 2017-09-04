@@ -63,7 +63,10 @@ public:
               arma::mat aphids_, arma::mat parasit_,
               arma::mat mummies_, arma::mat wasps_);
     
+    void show();
+    
 };
+
 
 
 

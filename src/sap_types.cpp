@@ -54,6 +54,34 @@ void SimSummary::fill(uint t_,
 }
 
 
+void SimSummary::show() {
+    
+    uint n_t = aphids.n_rows;
+    uint n_pops = aphids.n_cols;
+    uint n_patches = aphids.n_slices;
+    
+    Rcout.precision(4);
+    Rcout << std::fixed;
+    
+    Rcout << "< Info for SimSummary >" << endl;
+    Rcout << "  time:    " << n_t       << endl;
+    Rcout << "  pops:    " << n_pops    << endl;
+    Rcout << "  patches: " << n_patches << endl;
+    Rcout << endl;
+    
+    Rcout << "Fields:" << endl;
+    Rcout << "  aphids:  " <<  "density of unparasitized aphids" << endl;
+    Rcout << "  parasit: " <<  "density of parasitized, but alive, aphids" << endl;
+    Rcout << "  mummies: " <<  "density of mummies" << endl;
+    Rcout << "  wasps:   " <<  "density of adult wasps" << endl;
+    Rcout << endl;
+    
+    Rcout << "Each field is a 3D array." << endl;
+    Rcout << "Access elements like... " << endl;
+    Rcout << "<SimSummary obj>$<field name>[<time>,<pop>,<patch>]" << endl;
+}
+
+
 
 
 // ======================================================================================

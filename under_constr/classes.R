@@ -54,7 +54,7 @@ pl <- all_pop_lists(n_pops, n_patches,
 sp <- new(SimPatches, pl, harvest_times)
           # rep(sap::environ$cycle_length, n_patches), rep(c(0,15), n_pops / 2))
 out <- sp$simulate(100, rng_seed = sample.int(2^31-1,1))
-
+out
 
 # Figure 1
 {
