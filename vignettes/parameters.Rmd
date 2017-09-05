@@ -94,6 +94,8 @@ the object `sap::wasp_attack$attack_surv` stores values for a resistant line of 
 For the simulations Tony sent that he'd designed to use for the high tunnels, 
 he used two lines, one susceptible and one resistant to parasitoids, and no 
 process error.
+The days at which harvests occurred were handled not using a cycle length and 
+offset, but with a vector of harvest times; this made little difference, though.
 The following parameter values were different from default values:
 
 ```{r dens_vals, echo = FALSE}
