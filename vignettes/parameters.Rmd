@@ -11,7 +11,7 @@ vignette: >
 
 ```{r setup, include = FALSE}
 devtools::load_all()
-knitr::opts_chunk$set(collapse = TRUE, comment = "")
+knitr::opts_chunk$set(comment = "")
 ```
 
 This vignette describes the arguments that can be changed for a given aphid--wasp 
@@ -32,7 +32,7 @@ population pair.
 - `mum_days`: Vector for the number of days per parasitized-aphid stage. It should be 
   of length 2, representing stages where the parasitized aphid is alive and dead, 
   respectively.
-- `rel_attack`: Vectof of relative wasp attack rates by aphid stage.
+- `rel_attack`: Vector of relative wasp attack rates by aphid stage.
 - `a`: Overall parasitoid attack rate.
 - `k`: Aggregation parameter of the nbinom distribution.
 - `h`: Parasitoid attack rate handling time.
@@ -52,31 +52,77 @@ population pair.
 
 # Default values
 
-| Argument name        | Default-value object                  | Default value                             |
-|:---------------------|:--------------------------------------|:------------------------------------------|
-| `aphid_density_0`    | `sap::populations$aphids_0`           |   `r sap::populations$aphids_0`           |
-| `aphid_surv_juv`     | `sap::populations$surv_juv$high`      |   `r sap::populations$surv_juv$high`      |
-| `aphid_surv_adult`   | `sap::populations$surv_adult$high`    |   `r sap::populations$surv_adult$high`    |
-| `aphid_repro`        | `sap::populations$repro$high`         |   `r sap::populations$repro$high`         |
-| `K`                  | `sap::populations$K`                  |   `r sap::populations$K`                  |
-| `wasp_density_0`     | `sap::populations$wasps_0`            |   `r sap::populations$wasps_0`            |
-| `K_y`                | `sap::populations$K_y`                |   `r sap::populations$K_y`                |
-| `s_y`                | `sap::populations$s_y`                |   `r sap::populations$s_y`                |
-| `wasp_sex_ratio`     | `sap::populations$sex_ratio`          |   `r sap::populations$sex_ratio`          |
-| `aphid_instar_days`  | `sap::dev_times$instar_days$highT`    |   `r sap::dev_times$instar_days$highT`    |
-| `mum_days`           | `sap::dev_times$mum_days`             |   `r sap::dev_times$mum_days`             |
-| `rel_attack`         | `sap::wasp_attack$rel_attack$highT`   |   `r sap::wasp_attack$rel_attack$highT`   |
-| `a`                  | `sap::wasp_attack$a`                  |   `r sap::wasp_attack$a`                  |
-| `k`                  | `sap::wasp_attack$k`                  |   `r sap::wasp_attack$k`                  |
-| `h`                  | `sap::wasp_attack$h`                  |   `r sap::wasp_attack$h`                  |
-| `attack_surv`        | `NA`                                  |   `r c(1,1)`                              |
-| `sigma_x`            | `sap::environ$sigma_x`                |   `r sap::environ$sigma_x`                |
-| `sigma_y`            | `sap::environ$sigma_y`                |   `r sap::environ$sigma_y`                |
-| `rho`                | `sap::environ$rho`                    |   `r sap::environ$rho`                    |
-| `demog_mult`         | `NA`                                  |   `r 1`                                   |
-| `harvest_surv`       | `sap::environ$harvest_surv`           |   `r sap::environ$harvest_surv`           |
-| `disp_aphid`         | `sap::environ$disp_aphid`             |   `r sap::environ$disp_aphid`             |
-| `disp_wasp`          | `sap::environ$disp_wasp`              |   `r sap::environ$disp_wasp`              |
-| `disp_start`         | `sap::environ$disp_start$highT`       |   `r sap::environ$disp_start$highT`       |
-| `pred_rate`          | `sap::environ$pred_rate`              |   `r sap::environ$pred_rate`              |
+Below, the "Default-value object" is the internal-data object where the default 
+value is stored. Here, `NA` means it is not stored internally.
+Note also that although the default value for `attack_surv`  is not stored internally,
+the object `sap::wasp_attack$attack_surv` stores values for a resistant line of aphids.
+
+
+| Argument name       | Default-value object                | Default value                                      |
+|:--------------------|:------------------------------------|:---------------------------------------------------|
+| `aphid_density_0`   | `sap::populations$aphids_0`         | <code>`r sap::populations$aphids_0`</code>         |
+| `aphid_surv_juv`    | `sap::populations$surv_juv$high`    | <code>`r sap::populations$surv_juv$high`</code>    |
+| `aphid_surv_adult`  | `sap::populations$surv_adult$high`  | <code>`r sap::populations$surv_adult$high`</code>  |
+| `aphid_repro`       | `sap::populations$repro$high`       | <code>`r sap::populations$repro$high`</code>       |
+| `K`                 | `sap::populations$K`                | <code>`r sap::populations$K`</code>                |
+| `wasp_density_0`    | `sap::populations$wasps_0`          | <code>`r sap::populations$wasps_0`</code>          |
+| `K_y`               | `sap::populations$K_y`              | <code>`r sap::populations$K_y`</code>              |
+| `s_y`               | `sap::populations$s_y`              | <code>`r sap::populations$s_y`</code>              |
+| `wasp_sex_ratio`    | `sap::populations$sex_ratio`        | <code>`r sap::populations$sex_ratio`</code>        |
+| `aphid_instar_days` | `sap::dev_times$instar_days$highT`  | <code>`r sap::dev_times$instar_days$highT`</code>  |
+| `mum_days`          | `sap::dev_times$mum_days`           | <code>`r sap::dev_times$mum_days`</code>           |
+| `rel_attack`        | `sap::wasp_attack$rel_attack$highT` | <code>`r sap::wasp_attack$rel_attack$highT`</code> |
+| `a`                 | `sap::wasp_attack$a`                | <code>`r sap::wasp_attack$a`</code>                |
+| `k`                 | `sap::wasp_attack$k`                | <code>`r sap::wasp_attack$k`</code>                |
+| `h`                 | `sap::wasp_attack$h`                | <code>`r sap::wasp_attack$h`</code>                |
+| `attack_surv`       | `NA`                                | <code>`r c(0,0)`</code>                            |
+| `sigma_x`           | `sap::environ$sigma_x`              | <code>`r sap::environ$sigma_x`</code>              |
+| `sigma_y`           | `sap::environ$sigma_y`              | <code>`r sap::environ$sigma_y`</code>              |
+| `rho`               | `sap::environ$rho`                  | <code>`r sap::environ$rho`</code>                  |
+| `demog_mult`        | `NA`                                | <code>`r 1`</code>                                 |
+| `harvest_surv`      | `sap::environ$harvest_surv`         | <code>`r sap::environ$harvest_surv`</code>         |
+| `disp_aphid`        | `sap::environ$disp_aphid`           | <code>`r sap::environ$disp_aphid`</code>           |
+| `disp_wasp`         | `sap::environ$disp_wasp`            | <code>`r sap::environ$disp_wasp`</code>            |
+| `disp_start`        | `sap::environ$disp_start$highT`     | <code>`r sap::environ$disp_start$highT`</code>     |
+| `pred_rate`         | `sap::environ$pred_rate`            | <code>`r sap::environ$pred_rate`</code>            |
+
+
+
+
+# High tunnel simulations
+
+For the simulations Tony sent that he'd designed to use for the high tunnels, 
+he used two lines, one susceptible and one resistant to parasitoids, and no 
+process error.
+The following parameter values were different from default values:
+
+```{r dens_vals, echo = FALSE}
+sus_dens <- (1 - sap::populations$prop_resist) * sap::populations$aphids_0
+res_dens <- sap::populations$prop_resist * sap::populations$aphids_0
+
+res_surv <- sap::wasp_attack$attack_surv
+
+sus_adult <- sap::populations$surv_adult$high[1:32]
+res_adult <- sap::populations$surv_adult$low[1:32]
+
+sus_repro <- sap::populations$repro$high[1:32]
+res_repro <- sap::populations$repro$low[1:32]
+```
+
+| Argument name      | Susceptible                | Resistant                  |
+|:-------------------|:---------------------------|:---------------------------|
+| `aphid_density_0`  | <code>`r sus_dens`</code>  | <code>`r res_dens`</code>  |
+| `aphid_surv_adult` | <code>`r sus_adult`</code> | <code>`r res_adult`</code> |
+| `aphid_repro`      | <code>`r sus_repro`</code> | <code>`r res_repro`</code> |
+| `K`                | `0.0005`                   | `0.0005`                   |
+| `K_y`              | `0.0006`                   | `0.0006`                   |
+| `s_y`              | `0.55`                     | `0.55`                     |
+| `a`                | `2.5`                      | `2.5`                      |
+| `k`                | `0.1811`                   | `0.1811`                   |
+| `h`                | `0.0363`                   | `0.0363`                   |
+| `attack_surv`      | <code>`r c(0,0)`</code>    | <code>`r res_surv`</code>  |
+| `sigma_x`          | `0`                        | `0`                        |
+| `sigma_y`          | `0`                        | `0`                        |
+| `rho`              | `0`                        | `0`                        |
+| `demog_mult`       | `0`                        | `0`                        |
 
