@@ -25,8 +25,8 @@ for stage $i$ and individual $j$:
 s_{i,j} &= \text{logit}^{-1}\left( \alpha_{i,j} \right)
 \end{align}
 
-where $\bar s_i$ is the specified sample mean and $\sigma^2_{\alpha}$ is the 
-specified variance of $\alpha$.
+where $\bar s_i$ is the specified sample mean and $\sigma_{\alpha}$ is the 
+specified standard deviation of $\alpha$.
 
 
 # For (0, $\infty$) bound objects
@@ -41,5 +41,5 @@ variability as follows, for stage $i$ and individual $j$:
 r_{i,j} &= \text{exp}\left( \beta_{i,j} \right)
 \end{align}
 
-where $\bar r_i$ is the specified sample mean and $\sigma^2_{\beta}$ is the 
-specified variance of $\beta$.
+where $\bar r_i$ is the specified sample mean and $\sigma_{\beta}$ is the 
+specified standard deviation of $\beta$.
