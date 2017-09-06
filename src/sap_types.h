@@ -65,6 +65,8 @@ public:
     
     void show();
     
+    arma::mat flatten();
+    
 };
 
 

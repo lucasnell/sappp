@@ -53,6 +53,33 @@ void SimSummary::fill(uint t_,
     }
 }
 
+arma::mat SimSummary::flatten() {
+    
+    uint n_patches = aphids.n_slices;
+    uint n_lines = aphids.n_cols;
+    uint n_t = aphids.n_rows;
+    
+    arma::mat output(n_lines * n_patches * n_t, 7);
+    uint i = 0;
+    
+    for (uint p = 0; p < n_patches; p++) {
+        for (uint l = 0; l < n_lines; l++) {
+            for (uint t = 0; t < n_t; t++) {
+                output(i,0) = static_cast<double>(p);
+                output(i,1) = static_cast<double>(l);
+                output(i,2) = static_cast<double>(t);
+                output(i,3) = aphids(t,l,p);
+                output(i,4) = parasit(t,l,p);
+                output(i,5) = mummies(t,l,p);
+                output(i,6) = wasps(t,l,p);
+                i++;
+            }
+        }
+    }
+    
+    return output;
+}
+
 
 void SimSummary::show() {
     

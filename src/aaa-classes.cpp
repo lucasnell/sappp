@@ -27,6 +27,7 @@ RCPP_MODULE(sap_module) {
         .field("mummies", &SimSummary::mummies, "density of mummies")
         .field("wasps", &SimSummary::wasps, "density of adult wasps")
         .method("show", &SimSummary::show, "summarize SimSummary object")
+        .method("flatten", &SimSummary::flatten, "flatten to a single matrix")
     ;
     
     class_<SimPatches>("SimPatches")
