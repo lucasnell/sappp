@@ -52,39 +52,45 @@ population pair.
 
 # Default values
 
-Below, the "Default-value object" is the internal-data object where the default 
-value is stored. Here, `NA` means it is not stored internally.
+Below, the "Default-value expression" is the code necessary to access and, in some 
+cases, manipulate an internal-data object to compute the default value.
+Here, `NA` means it is not stored internally.
 Note also that although the default value for `attack_surv`  is not stored internally,
 the object `sap::wasp_attack$attack_surv` stores values for a resistant line of aphids.
 
+I first created this function for the calls to `Reduce`.
+```{r meanfun}
+mf <- function(x, y) (x + y) / 2
+```
 
-| Argument name       | Default-value object                | Default value                                      |
-|:--------------------|:------------------------------------|:---------------------------------------------------|
-| `aphid_density_0`   | `sap::populations$aphids_0`         | <code>`r sap::populations$aphids_0`</code>         |
-| `aphid_surv_juv`    | `sap::populations$surv_juv$high`    | <code>`r sap::populations$surv_juv$high`</code>    |
-| `aphid_surv_adult`  | `sap::populations$surv_adult$high`  | <code>`r sap::populations$surv_adult$high`</code>  |
-| `aphid_repro`       | `sap::populations$repro$high`       | <code>`r sap::populations$repro$high`</code>       |
-| `K`                 | `sap::populations$K`                | <code>`r sap::populations$K`</code>                |
-| `wasp_density_0`    | `sap::populations$wasps_0`          | <code>`r sap::populations$wasps_0`</code>          |
-| `K_y`               | `sap::populations$K_y`              | <code>`r sap::populations$K_y`</code>              |
-| `s_y`               | `sap::populations$s_y`              | <code>`r sap::populations$s_y`</code>              |
-| `wasp_sex_ratio`    | `sap::populations$sex_ratio`        | <code>`r sap::populations$sex_ratio`</code>        |
-| `aphid_instar_days` | `sap::dev_times$instar_days$highT`  | <code>`r sap::dev_times$instar_days$highT`</code>  |
-| `mum_days`          | `sap::dev_times$mum_days`           | <code>`r sap::dev_times$mum_days`</code>           |
-| `rel_attack`        | `sap::wasp_attack$rel_attack$highT` | <code>`r sap::wasp_attack$rel_attack$highT`</code> |
-| `a`                 | `sap::wasp_attack$a`                | <code>`r sap::wasp_attack$a`</code>                |
-| `k`                 | `sap::wasp_attack$k`                | <code>`r sap::wasp_attack$k`</code>                |
-| `h`                 | `sap::wasp_attack$h`                | <code>`r sap::wasp_attack$h`</code>                |
-| `attack_surv`       | `NA`                                | <code>`r c(0,0)`</code>                            |
-| `sigma_x`           | `sap::environ$sigma_x`              | <code>`r sap::environ$sigma_x`</code>              |
-| `sigma_y`           | `sap::environ$sigma_y`              | <code>`r sap::environ$sigma_y`</code>              |
-| `rho`               | `sap::environ$rho`                  | <code>`r sap::environ$rho`</code>                  |
-| `demog_mult`        | `NA`                                | <code>`r 1`</code>                                 |
-| `harvest_surv`      | `sap::environ$harvest_surv`         | <code>`r sap::environ$harvest_surv`</code>         |
-| `disp_aphid`        | `sap::environ$disp_aphid`           | <code>`r sap::environ$disp_aphid`</code>           |
-| `disp_wasp`         | `sap::environ$disp_wasp`            | <code>`r sap::environ$disp_wasp`</code>            |
-| `disp_start`        | `sap::environ$disp_start$highT`     | <code>`r sap::environ$disp_start$highT`</code>     |
-| `pred_rate`         | `sap::environ$pred_rate`            | <code>`r sap::environ$pred_rate`</code>            |
+
+| Argument name       | Default-value expression                  | Default value                                            |
+|:--------------------|:------------------------------------------|:---------------------------------------------------------|
+| `aphid_density_0`   | `sap::populations$aphids_0`               | <code>`r sap::populations$aphids_0`</code>               |
+| `aphid_surv_juv`    | `Reduce(mf,sap::populations$surv_juv)`    | <code>`r Reduce(mf,sap::populations$surv_juv)`</code>    |
+| `aphid_surv_adult`  | `Reduce(mf,sap::populations$surv_adult)`  | <code>`r Reduce(mf,sap::populations$surv_adult)`</code>  |
+| `aphid_repro`       | `Reduce(mf,sap::populations$repro)`       | <code>`r Reduce(mf,sap::populations$repro)`</code>       |
+| `K`                 | `sap::populations$K`                      | <code>`r sap::populations$K`</code>                      |
+| `wasp_density_0`    | `sap::populations$wasps_0`                | <code>`r sap::populations$wasps_0`</code>                |
+| `K_y`               | `sap::populations$K_y`                    | <code>`r sap::populations$K_y`</code>                    |
+| `s_y`               | `sap::populations$s_y`                    | <code>`r sap::populations$s_y`</code>                    |
+| `wasp_sex_ratio`    | `sap::populations$sex_ratio`              | <code>`r sap::populations$sex_ratio`</code>              |
+| `aphid_instar_days` | `sap::dev_times$instar_days$highT`        | <code>`r sap::dev_times$instar_days$highT`</code>        |
+| `mum_days`          | `sap::dev_times$mum_days`                 | <code>`r sap::dev_times$mum_days`</code>                 |
+| `rel_attack`        | `sap::wasp_attack$rel_attack$highT`       | <code>`r sap::wasp_attack$rel_attack$highT`</code>       |
+| `a`                 | `sap::wasp_attack$a`                      | <code>`r sap::wasp_attack$a`</code>                      |
+| `k`                 | `sap::wasp_attack$k`                      | <code>`r sap::wasp_attack$k`</code>                      |
+| `h`                 | `sap::wasp_attack$h`                      | <code>`r sap::wasp_attack$h`</code>                      |
+| `attack_surv`       | `sap::wasp_attack$attack_surv / 2`        | <code>`r sap::wasp_attack$attack_surv / 2`</code>        |
+| `sigma_x`           | `sap::environ$sigma_x`                    | <code>`r sap::environ$sigma_x`</code>                    |
+| `sigma_y`           | `sap::environ$sigma_y`                    | <code>`r sap::environ$sigma_y`</code>                    |
+| `rho`               | `sap::environ$rho`                        | <code>`r sap::environ$rho`</code>                        |
+| `demog_mult`        | `NA`                                      | <code>`r 1`</code>                                       |
+| `harvest_surv`      | `sap::environ$harvest_surv`               | <code>`r sap::environ$harvest_surv`</code>               |
+| `disp_aphid`        | `sap::environ$disp_aphid`                 | <code>`r sap::environ$disp_aphid`</code>                 |
+| `disp_wasp`         | `sap::environ$disp_wasp`                  | <code>`r sap::environ$disp_wasp`</code>                  |
+| `disp_start`        | `sap::environ$disp_start$highT`           | <code>`r sap::environ$disp_start$highT`</code>           |
+| `pred_rate`         | `sap::environ$pred_rate`                  | <code>`r sap::environ$pred_rate`</code>                  |
 
 
 

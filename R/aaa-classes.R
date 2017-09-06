@@ -65,14 +65,15 @@ AphidWasp_list <- function(
     aphid_name, aphid_density_0 = NULL, aphid_surv_juv = NULL, aphid_surv_adult = NULL, 
     aphid_repro = NULL, K = NULL, wasp_density_0 = NULL, K_y = NULL, s_y = NULL, 
     wasp_sex_ratio = NULL, aphid_instar_days = NULL, mum_days = NULL, rel_attack = NULL, 
-    a = NULL, k = NULL, h = NULL, attack_surv = numeric(2), sigma_x = NULL, 
+    a = NULL, k = NULL, h = NULL, attack_surv = NULL, sigma_x = NULL, 
     sigma_y = NULL, rho = NULL, demog_mult = 1.0, harvest_surv = NULL, disp_aphid = NULL,
     disp_wasp = NULL, disp_start = NULL, pred_rate = NULL) {
     
+    
     if (is.null(aphid_density_0)) aphid_density_0 <- sap::populations$aphids_0
-    if (is.null(aphid_surv_juv)) aphid_surv_juv <- sap::populations$surv_juv$high
-    if (is.null(aphid_surv_adult)) aphid_surv_adult <- sap::populations$surv_adult$high
-    if (is.null(aphid_repro)) aphid_repro <- sap::populations$repro$high
+    if (is.null(aphid_surv_juv)) aphid_surv_juv <- Reduce(`+`,sap::populations$surv_juv)/2
+    if (is.null(aphid_surv_adult)) aphid_surv_adult <- Reduce(`+`,sap::populations$surv_adult)/2
+    if (is.null(aphid_repro)) aphid_repro <- Reduce(`+`,sap::populations$repro)/2
     if (is.null(K)) K <- sap::populations$K
     if (is.null(wasp_density_0)) wasp_density_0 <- sap::populations$wasps_0
     if (is.null(K_y)) K_y <- sap::populations$K_y
@@ -84,6 +85,7 @@ AphidWasp_list <- function(
     if (is.null(a)) a <- sap::wasp_attack$a
     if (is.null(k)) k <- sap::wasp_attack$k
     if (is.null(h)) h <- sap::wasp_attack$h
+    if (is.null(attack_surv)) attack_surv <- sap::wasp_attack$attack_surv / 2
     if (is.null(sigma_x)) sigma_x <- sap::environ$sigma_x
     if (is.null(sigma_y)) sigma_y <- sap::environ$sigma_y
     if (is.null(rho)) rho <- sap::environ$rho
@@ -265,6 +267,7 @@ all_pop_lists <- function(.n_pops, .n_patches, ..., .aphid_names = NULL) {
     
     return(par_lists)
 }
+
 
 
 
