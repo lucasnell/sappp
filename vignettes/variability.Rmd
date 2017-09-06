@@ -1,0 +1,45 @@
+---
+title: "variability"
+author: "Lucas A. Nell"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{sap variability}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# For (0,1) bound parameters:
+
+For parameters that are bound between 0 and 1 ($s$), I added variability as follows,
+for stage $i$ and individual $j$:
+
+\begin{align}
+\bar\alpha_i &= \text{logit}\left( \bar s_i \right) \\
+\varepsilon_{\alpha,j} &\sim N \left(0,\sigma_{\alpha}^2 \right) \\
+\alpha_{i,j} &= \bar\alpha_i + \varepsilon_{\alpha,j} \\
+s_{i,j} &= \text{logit}^{-1}\left( \alpha_{i,j} \right)
+\end{align}
+
+where $\bar s_i$ is the specified sample mean and $\sigma^2_{\alpha}$ is the 
+specified variance of $\alpha$.
+
+
+# For (0, $\infty$) bound objects
+
+For other parameters only bound to a lower limit of zero ($r$), I added 
+variability as follows, for stage $i$ and individual $j$:
+
+\begin{align}
+\bar\beta_i &= \text{log}\left( \bar r_i \right) \\
+\varepsilon_{\beta,j} &\sim N \left(0,\sigma_{\beta}^2 \right) \\
+\beta_{i,j} &= \bar\beta_i + \varepsilon_{\beta,j} \\
+r_{i,j} &= \text{exp}\left( \beta_{i,j} \right)
+\end{align}
+
+where $\bar r_i$ is the specified sample mean and $\sigma^2_{\beta}$ is the 
+specified variance of $\beta$.

@@ -58,9 +58,7 @@ make_n_values <- function(.par_name, .n, .sd, .mean = NULL) {
     
 }
 
-
-
-
+Rcpp::compileAttributes(); devtools::load_all()
 
 
 z <- rbeta(10000, 20, 50); hist(z); mean(z); var(z)

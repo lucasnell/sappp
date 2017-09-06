@@ -1,8 +1,21 @@
 #include <RcppArmadillo.h>
-
+#include <cmath>
 
 using namespace Rcpp;
 using namespace std;
+
+// Logit and inverse logit
+//[[Rcpp::export]]
+arma::vec logit(arma::vec p) {
+    arma::vec out = arma::log(p / (1-p));
+    return out;
+}
+//[[Rcpp::export]]
+arma::vec inv_logit(arma::vec a){
+    arma::vec out = 1 / (1 + arma::exp(-a));
+    return out;
+}
+
 
 //
 // Create Leslie matrix from aphid info

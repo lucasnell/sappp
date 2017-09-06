@@ -9,10 +9,34 @@
 
 using namespace Rcpp;
 
+// logit
+arma::vec logit(arma::vec p);
+RcppExport SEXP _sap_logit(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(logit(p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// inv_logit
+arma::vec inv_logit(arma::vec a);
+RcppExport SEXP _sap_inv_logit(SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(inv_logit(a));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP _rcpp_module_boot_sap_module();
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_sap_logit", (DL_FUNC) &_sap_logit, 1},
+    {"_sap_inv_logit", (DL_FUNC) &_sap_inv_logit, 1},
     {"_rcpp_module_boot_sap_module", (DL_FUNC) &_rcpp_module_boot_sap_module, 0},
     {NULL, NULL, 0}
 };
