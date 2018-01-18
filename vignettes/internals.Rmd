@@ -1,10 +1,10 @@
 ---
-title: "sap internals"
+title: "sappp internals"
 author: "Lucas A. Nell"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{sap internals}
+  %\VignetteIndexEntry{sappp internals}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,8 +14,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 
-This vignette outlines the internal data present in `sap`. 
-These data inform the default parameters (see `vignette("parameters", "sap")`).
+This vignette outlines the internal data present in `sappp`. 
+These data inform the default parameters (see `vignette("parameters", "sappp")`).
 
 
 The code was initially set up for 2 clones that have different life histories.
@@ -191,7 +191,7 @@ environ[["rho"]] <- signif(               # environmental correlation among inst
 
 # Saving data
 
-Saving the created objects as internal data for `sap`.
+Saving the created objects as internal data for `sappp`.
 
 ```{r save_data, eval = FALSE}
 devtools::use_data(dev_times, populations, wasp_attack, environ, internal = TRUE)

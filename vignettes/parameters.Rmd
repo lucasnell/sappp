@@ -1,10 +1,10 @@
 ---
-title: "sap parameters"
+title: "sappp parameters"
 author: "Lucas A. Nell"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{sap parameters}
+  %\VignetteIndexEntry{sappp parameters}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -56,7 +56,7 @@ Below, the "Default-value expression" is the code necessary to access and, in so
 cases, manipulate an internal-data object to compute the default value.
 Here, `NA` means it is not stored internally.
 Note also that although the default value for `attack_surv`  is not stored internally,
-the object `sap::wasp_attack$attack_surv` stores values for a resistant line of aphids.
+the object `sappp::wasp_attack$attack_surv` stores values for a resistant line of aphids.
 
 I first created this function for the calls to `Reduce`.
 ```{r meanfun}
@@ -66,31 +66,31 @@ mf <- function(x, y) (x + y) / 2
 
 | Argument name       | Default-value expression                  | Default value                                            |
 |:--------------------|:------------------------------------------|:---------------------------------------------------------|
-| `aphid_density_0`   | `sap::populations$aphids_0`               | <code>`r sap::populations$aphids_0`</code>               |
-| `aphid_surv_juv`    | `Reduce(mf,sap::populations$surv_juv)`    | <code>`r Reduce(mf,sap::populations$surv_juv)`</code>    |
-| `aphid_surv_adult`  | `Reduce(mf,sap::populations$surv_adult)`  | <code>`r Reduce(mf,sap::populations$surv_adult)`</code>  |
-| `aphid_repro`       | `Reduce(mf,sap::populations$repro)`       | <code>`r Reduce(mf,sap::populations$repro)`</code>       |
-| `K`                 | `sap::populations$K`                      | <code>`r sap::populations$K`</code>                      |
-| `wasp_density_0`    | `sap::populations$wasps_0`                | <code>`r sap::populations$wasps_0`</code>                |
-| `K_y`               | `sap::populations$K_y`                    | <code>`r sap::populations$K_y`</code>                    |
-| `s_y`               | `sap::populations$s_y`                    | <code>`r sap::populations$s_y`</code>                    |
-| `wasp_sex_ratio`    | `sap::populations$sex_ratio`              | <code>`r sap::populations$sex_ratio`</code>              |
-| `aphid_instar_days` | `sap::dev_times$instar_days$highT`        | <code>`r sap::dev_times$instar_days$highT`</code>        |
-| `mum_days`          | `sap::dev_times$mum_days`                 | <code>`r sap::dev_times$mum_days`</code>                 |
-| `rel_attack`        | `sap::wasp_attack$rel_attack$highT`       | <code>`r sap::wasp_attack$rel_attack$highT`</code>       |
-| `a`                 | `sap::wasp_attack$a`                      | <code>`r sap::wasp_attack$a`</code>                      |
-| `k`                 | `sap::wasp_attack$k`                      | <code>`r sap::wasp_attack$k`</code>                      |
-| `h`                 | `sap::wasp_attack$h`                      | <code>`r sap::wasp_attack$h`</code>                      |
-| `attack_surv`       | `sap::wasp_attack$attack_surv / 2`        | <code>`r sap::wasp_attack$attack_surv / 2`</code>        |
-| `sigma_x`           | `sap::environ$sigma_x`                    | <code>`r sap::environ$sigma_x`</code>                    |
-| `sigma_y`           | `sap::environ$sigma_y`                    | <code>`r sap::environ$sigma_y`</code>                    |
-| `rho`               | `sap::environ$rho`                        | <code>`r sap::environ$rho`</code>                        |
+| `aphid_density_0`   | `sappp::populations$aphids_0`               | <code>`r sappp::populations$aphids_0`</code>               |
+| `aphid_surv_juv`    | `Reduce(mf,sappp::populations$surv_juv)`    | <code>`r Reduce(mf,sappp::populations$surv_juv)`</code>    |
+| `aphid_surv_adult`  | `Reduce(mf,sappp::populations$surv_adult)`  | <code>`r Reduce(mf,sappp::populations$surv_adult)`</code>  |
+| `aphid_repro`       | `Reduce(mf,sappp::populations$repro)`       | <code>`r Reduce(mf,sappp::populations$repro)`</code>       |
+| `K`                 | `sappp::populations$K`                      | <code>`r sappp::populations$K`</code>                      |
+| `wasp_density_0`    | `sappp::populations$wasps_0`                | <code>`r sappp::populations$wasps_0`</code>                |
+| `K_y`               | `sappp::populations$K_y`                    | <code>`r sappp::populations$K_y`</code>                    |
+| `s_y`               | `sappp::populations$s_y`                    | <code>`r sappp::populations$s_y`</code>                    |
+| `wasp_sex_ratio`    | `sappp::populations$sex_ratio`              | <code>`r sappp::populations$sex_ratio`</code>              |
+| `aphid_instar_days` | `sappp::dev_times$instar_days$highT`        | <code>`r sappp::dev_times$instar_days$highT`</code>        |
+| `mum_days`          | `sappp::dev_times$mum_days`                 | <code>`r sappp::dev_times$mum_days`</code>                 |
+| `rel_attack`        | `sappp::wasp_attack$rel_attack$highT`       | <code>`r sappp::wasp_attack$rel_attack$highT`</code>       |
+| `a`                 | `sappp::wasp_attack$a`                      | <code>`r sappp::wasp_attack$a`</code>                      |
+| `k`                 | `sappp::wasp_attack$k`                      | <code>`r sappp::wasp_attack$k`</code>                      |
+| `h`                 | `sappp::wasp_attack$h`                      | <code>`r sappp::wasp_attack$h`</code>                      |
+| `attack_surv`       | `sappp::wasp_attack$attack_surv / 2`        | <code>`r sappp::wasp_attack$attack_surv / 2`</code>        |
+| `sigma_x`           | `sappp::environ$sigma_x`                    | <code>`r sappp::environ$sigma_x`</code>                    |
+| `sigma_y`           | `sappp::environ$sigma_y`                    | <code>`r sappp::environ$sigma_y`</code>                    |
+| `rho`               | `sappp::environ$rho`                        | <code>`r sappp::environ$rho`</code>                        |
 | `demog_mult`        | `NA`                                      | <code>`r 1`</code>                                       |
-| `harvest_surv`      | `sap::environ$harvest_surv`               | <code>`r sap::environ$harvest_surv`</code>               |
-| `disp_aphid`        | `sap::environ$disp_aphid`                 | <code>`r sap::environ$disp_aphid`</code>                 |
-| `disp_wasp`         | `sap::environ$disp_wasp`                  | <code>`r sap::environ$disp_wasp`</code>                  |
-| `disp_start`        | `sap::environ$disp_start$highT`           | <code>`r sap::environ$disp_start$highT`</code>           |
-| `pred_rate`         | `sap::environ$pred_rate`                  | <code>`r sap::environ$pred_rate`</code>                  |
+| `harvest_surv`      | `sappp::environ$harvest_surv`               | <code>`r sappp::environ$harvest_surv`</code>               |
+| `disp_aphid`        | `sappp::environ$disp_aphid`                 | <code>`r sappp::environ$disp_aphid`</code>                 |
+| `disp_wasp`         | `sappp::environ$disp_wasp`                  | <code>`r sappp::environ$disp_wasp`</code>                  |
+| `disp_start`        | `sappp::environ$disp_start$highT`           | <code>`r sappp::environ$disp_start$highT`</code>           |
+| `pred_rate`         | `sappp::environ$pred_rate`                  | <code>`r sappp::environ$pred_rate`</code>                  |
 
 
 
@@ -105,16 +105,16 @@ offset, but with a vector of harvest times; this made little difference, though.
 The following parameter values were different from default values:
 
 ```{r dens_vals, echo = FALSE}
-sus_dens <- (1 - sap::populations$prop_resist) * sap::populations$aphids_0
-res_dens <- sap::populations$prop_resist * sap::populations$aphids_0
+sus_dens <- (1 - sappp::populations$prop_resist) * sappp::populations$aphids_0
+res_dens <- sappp::populations$prop_resist * sappp::populations$aphids_0
 
-res_surv <- sap::wasp_attack$attack_surv
+res_surv <- sappp::wasp_attack$attack_surv
 
-sus_adult <- sap::populations$surv_adult$high[1:32]
-res_adult <- sap::populations$surv_adult$low[1:32]
+sus_adult <- sappp::populations$surv_adult$high[1:32]
+res_adult <- sappp::populations$surv_adult$low[1:32]
 
-sus_repro <- sap::populations$repro$high[1:32]
-res_repro <- sap::populations$repro$low[1:32]
+sus_repro <- sappp::populations$repro$high[1:32]
+res_repro <- sappp::populations$repro$low[1:32]
 ```
 
 | Argument name      | Susceptible                | Resistant                  |

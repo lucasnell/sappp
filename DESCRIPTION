@@ -1,11 +1,11 @@
-Package: sap
+Package: sappp
 Type: Package
-Title: Simulating Aphid Populations
+Title: Simulating Aphid and Parasitoid Populations... with Predation
 Version: 1.0
 Date: 2017-09-01
 Author: Lucas Nell
 Maintainer: Lucas Nell <lucas@lucasnell.com>
-Description: Simulating aphid populations.
+Description: Stage-structured model to simulate aphid and parasitoid populations.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

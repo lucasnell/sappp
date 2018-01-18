@@ -21,45 +21,45 @@ AphidWasp_list <- function(
     disp_wasp = NULL, disp_start = NULL, pred_rate = NULL) {
     
     
-    if (is.null(aphid_density_0)) aphid_density_0 <- sap::populations$aphids_0
+    if (is.null(aphid_density_0)) aphid_density_0 <- sappp::populations$aphids_0
     if (is.null(aphid_surv_juv)) aphid_surv_juv <- 
-            Reduce(`+`,sap::populations$surv_juv)/2
+            Reduce(`+`,sappp::populations$surv_juv)/2
     if (is.null(aphid_surv_adult)) aphid_surv_adult <- 
-            Reduce(`+`,sap::populations$surv_adult)/2
-    if (is.null(aphid_repro)) aphid_repro <- Reduce(`+`,sap::populations$repro)/2
-    if (is.null(K)) K <- sap::populations$K
-    if (is.null(wasp_density_0)) wasp_density_0 <- sap::populations$wasps_0
-    if (is.null(K_y)) K_y <- sap::populations$K_y
-    if (is.null(s_y)) s_y <- sap::populations$s_y
-    if (is.null(wasp_sex_ratio)) wasp_sex_ratio <- sap::populations$sex_ratio
-    if (is.null(aphid_instar_days)) aphid_instar_days <- sap::dev_times$instar_days$highT
-    if (is.null(mum_days)) mum_days <- sap::dev_times$mum_days
-    if (is.null(rel_attack)) rel_attack <- sap::wasp_attack$rel_attack$highT
-    if (is.null(a)) a <- sap::wasp_attack$a
-    if (is.null(k)) k <- sap::wasp_attack$k
-    if (is.null(h)) h <- sap::wasp_attack$h
-    if (is.null(attack_surv)) attack_surv <- sap::wasp_attack$attack_surv / 2
-    if (is.null(sigma_x)) sigma_x <- sap::environ$sigma_x
-    if (is.null(sigma_y)) sigma_y <- sap::environ$sigma_y
-    if (is.null(rho)) rho <- sap::environ$rho
-    if (is.null(harvest_surv)) harvest_surv <- sap::environ$harvest_surv
-    if (is.null(disp_aphid)) disp_aphid <- sap::environ$disp_aphid
-    if (is.null(disp_wasp)) disp_wasp <- sap::environ$disp_wasp
-    if (is.null(disp_start)) disp_start <- sap::environ$disp_start$highT
-    if (is.null(pred_rate)) pred_rate <- sap::environ$pred_rate
+            Reduce(`+`,sappp::populations$surv_adult)/2
+    if (is.null(aphid_repro)) aphid_repro <- Reduce(`+`,sappp::populations$repro)/2
+    if (is.null(K)) K <- sappp::populations$K
+    if (is.null(wasp_density_0)) wasp_density_0 <- sappp::populations$wasps_0
+    if (is.null(K_y)) K_y <- sappp::populations$K_y
+    if (is.null(s_y)) s_y <- sappp::populations$s_y
+    if (is.null(wasp_sex_ratio)) wasp_sex_ratio <- sappp::populations$sex_ratio
+    if (is.null(aphid_instar_days)) aphid_instar_days <- sappp::dev_times$instar_days$highT
+    if (is.null(mum_days)) mum_days <- sappp::dev_times$mum_days
+    if (is.null(rel_attack)) rel_attack <- sappp::wasp_attack$rel_attack$highT
+    if (is.null(a)) a <- sappp::wasp_attack$a
+    if (is.null(k)) k <- sappp::wasp_attack$k
+    if (is.null(h)) h <- sappp::wasp_attack$h
+    if (is.null(attack_surv)) attack_surv <- sappp::wasp_attack$attack_surv / 2
+    if (is.null(sigma_x)) sigma_x <- sappp::environ$sigma_x
+    if (is.null(sigma_y)) sigma_y <- sappp::environ$sigma_y
+    if (is.null(rho)) rho <- sappp::environ$rho
+    if (is.null(harvest_surv)) harvest_surv <- sappp::environ$harvest_surv
+    if (is.null(disp_aphid)) disp_aphid <- sappp::environ$disp_aphid
+    if (is.null(disp_wasp)) disp_wasp <- sappp::environ$disp_wasp
+    if (is.null(disp_start)) disp_start <- sappp::environ$disp_start$highT
+    if (is.null(pred_rate)) pred_rate <- sappp::environ$pred_rate
     
     
     if (is.character(aphid_surv_juv)) {
-        stopifnot(aphid_surv_juv %in% names(sap::populations$surv_juv))
-        aphid_surv_juv <- sap::populations$surv_juv[[aphid_surv_juv]]
+        stopifnot(aphid_surv_juv %in% names(sappp::populations$surv_juv))
+        aphid_surv_juv <- sappp::populations$surv_juv[[aphid_surv_juv]]
     }
     if (is.character(aphid_surv_adult)) {
-        stopifnot(aphid_surv_adult %in% names(sap::populations$surv_adult))
-        aphid_surv_adult <- sap::populations$surv_adult[[aphid_surv_adult]]
+        stopifnot(aphid_surv_adult %in% names(sappp::populations$surv_adult))
+        aphid_surv_adult <- sappp::populations$surv_adult[[aphid_surv_adult]]
     }
     if (is.character(aphid_repro)) {
-        stopifnot(aphid_repro %in% names(sap::populations$repro))
-        aphid_repro <- sap::populations$repro[[aphid_repro]]
+        stopifnot(aphid_repro %in% names(sappp::populations$repro))
+        aphid_repro <- sappp::populations$repro[[aphid_repro]]
     }
     if (is.character(attack_surv)) {
         stopifnot(attack_surv %in% c('resistant', 'susceptible'))

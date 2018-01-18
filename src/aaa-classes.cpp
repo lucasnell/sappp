@@ -5,7 +5,7 @@
 #include <random>          // normal distribution
 #include <cstdint>         // integer types
 
-#include "sap_types.h"
+#include "sappp_types.h"
 
 using namespace Rcpp;
 using namespace std;
@@ -16,9 +16,7 @@ RCPP_EXPOSED_CLASS(SimPatches)
 
     
 
-
-
-RCPP_MODULE(sap_module) {
+RCPP_MODULE(sappp_module) {
     
     class_<SimSummary>("SimSummary")
         .field("aphids", &SimSummary::aphids, "density of unparasitized aphids")

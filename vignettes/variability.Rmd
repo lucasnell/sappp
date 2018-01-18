@@ -4,7 +4,7 @@ author: "Lucas A. Nell"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{sap variability}
+  %\VignetteIndexEntry{sappp variability}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -16,13 +16,13 @@ make_n_values <- function(.par_name, .n_pops, .n_patches, .sd_pops,
     }
     
     default_means <- list(
-        aphid_density_0 = sap::populations$aphids_0,
-        aphid_surv_juv = Reduce(`+`, sap::populations$surv_juv)/2,
-        aphid_surv_adult = Reduce(`+`, sap::populations$surv_adult)/2,
-        aphid_repro = Reduce(`+`, sap::populations$repro)/2,
-        K = sap::populations$K,
-        disp_aphid = sap::environ$disp_aphid,
-        attack_surv = sap::wasp_attack$attack_surv / 2
+        aphid_density_0 = sappp::populations$aphids_0,
+        aphid_surv_juv = Reduce(`+`, sappp::populations$surv_juv)/2,
+        aphid_surv_adult = Reduce(`+`, sappp::populations$surv_adult)/2,
+        aphid_repro = Reduce(`+`, sappp::populations$repro)/2,
+        K = sappp::populations$K,
+        disp_aphid = sappp::environ$disp_aphid,
+        attack_surv = sappp::wasp_attack$attack_surv / 2
     )
     if (is.null(.mean)) .mean <- default_means[[.par_name]]
     # One copy is sufficient if you don't want any variability
@@ -81,7 +81,7 @@ make_n_values <- function(.par_name, .n_pops, .n_patches, .sd_pops,
 #' @param .n_pops Number of aphid lines.
 #' @param .n_patches Number of patches.
 #' @param .harvest_periods Period of harvest cycle. Defaults to 
-#'     \code{sap::environ$cycle_length}.
+#'     \code{sappp::environ$cycle_length}.
 #' @param .harvest_offsets Offset for harvest cycle. Defaults to 0.
 #' @param aphid_density_0 Starting aphid densit(ies). Defaults to \code{NULL}.
 #' @param aphid_surv_juv Aphid juvenile survival. Defaults to \code{NULL}.
@@ -122,7 +122,7 @@ make_n_values <- function(.par_name, .n_pops, .n_patches, .sd_pops,
 #' @examples
 make_sim_obj <- function(
     .n_pops, .n_patches,
-    .harvest_periods = sap::environ$cycle_length,
+    .harvest_periods = sappp::environ$cycle_length,
     .harvest_offsets = 0,
     aphid_density_0 = NULL,
     aphid_surv_juv = NULL,

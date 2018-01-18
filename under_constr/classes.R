@@ -35,7 +35,7 @@ sim_df <- sim$flatten() %>%
            line = factor(as.integer(line)),
            t = as.integer(t))
 
-
+source(".Rprofile")
 sim_df %>% 
     # filter(t <= 50) %>%
     # filter(patch == 1) %>% 

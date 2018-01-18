@@ -7,7 +7,7 @@
 #include <cstdint>         // integer types
 #include <algorithm>       // find
 #include "math.h"          // leslie_matrix and leslie_sad
-#include "sap_types.h"     // all these classes
+#include "sappp_types.h"     // all these classes
 
 
 using namespace Rcpp;
