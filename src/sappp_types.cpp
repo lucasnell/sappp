@@ -13,7 +13,7 @@
 using namespace Rcpp;
 using namespace std;
 
-
+#define MAX_INT 4294967295
 
 
 
@@ -520,7 +520,9 @@ void SimPatches::dispersal() {
 
 
 // reset object and simulate a set number of time periods
-SimSummary SimPatches::simulate(uint max_t, uint rng_seed) {
+SimSummary SimPatches::simulate(uint max_t) {
+    
+    uint rng_seed = static_cast<uint>(R::runif(0, MAX_INT));
     
     sitmo::prng_engine eng(rng_seed);
     // Make sure everything is back to normal and new, unique seeds are set

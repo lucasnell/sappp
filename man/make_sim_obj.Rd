@@ -70,7 +70,7 @@ so <- make_sim_obj(
     disp_aphid = list(.sd_pops = 1),
     attack_surv = NULL,
     no_error = TRUE)
-sim <- so$simulate(630, rng_seed = sample.int(2^31-1,1))
+sim <- so$simulate(630)
 sim
 
 

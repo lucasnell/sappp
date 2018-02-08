@@ -430,7 +430,7 @@ public:
     
     void dispersal();
     
-    SimSummary simulate(uint max_t, uint rng_seed);
+    SimSummary simulate(uint max_t);
     
 };
 

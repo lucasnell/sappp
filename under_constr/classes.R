@@ -1,11 +1,10 @@
 # library(Rcpp)
 # devtools::clean_dll()
-Rcpp::compileAttributes()
-devtools::load_all()
+# Rcpp::compileAttributes()
+# devtools::load_all()
+library(sappp)
 library(dplyr)
 library(ggplot2)
-
-
 
 
 
@@ -25,7 +24,7 @@ so <- make_sim_obj(
     no_error = TRUE,
     harvest_surv = 0.5,
     wasp_density_0 = 1)
-sim <- so$simulate(120, rng_seed = sample.int(2^31-1,1))
+sim <- so$simulate(120)
 
 sim_df <- sim$flatten() %>% 
     as_data_frame %>%
