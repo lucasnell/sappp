@@ -103,6 +103,8 @@ make_n_values <- function(.par_name, .n_pops, .n_patches, .sd_pops,
 #' 
 #' @export
 #' 
+#' @examples
+#' 
 #' so <- make_sim_obj(
 #'     .n_pops = 10, .n_patches = 8,
 #'     .harvest_periods = 7,
@@ -119,10 +121,9 @@ make_n_values <- function(.par_name, .n_pops, .n_patches, .sd_pops,
 #' sim
 #' 
 #'
-#' @examples
 make_sim_obj <- function(
     .n_pops, .n_patches,
-    .harvest_periods = sappp::environ$cycle_length,
+    .harvest_periods = NULL,
     .harvest_offsets = 0,
     aphid_density_0 = NULL,
     aphid_surv_juv = NULL,
@@ -133,6 +134,8 @@ make_sim_obj <- function(
     attack_surv = NULL,
     no_error = TRUE,
     ...) {
+    
+    if (is.null(.harvest_periods)) .harvest_periods <- sappp::environ$cycle_length
     
     # Get no-variance objects for those that are not input here
     # If they are input here, then get lists with variability
