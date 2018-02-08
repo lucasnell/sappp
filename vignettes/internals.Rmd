@@ -5,8 +5,10 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{sappp internals}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include = FALSE}
@@ -24,7 +26,7 @@ demographic parameters at 20º and 27º C. See
 [Meisner et al. (2014)](http://doi.wiley.com/10.1890/13-1933.1).
 
 
-Parameters from this document are saved into 4 lists present in the internal 
+Parameters from this document are saved into 4 lists present as exported 
 data for this package:
 
 |               |                                                                    |
@@ -194,5 +196,5 @@ environ[["rho"]] <- signif(               # environmental correlation among inst
 Saving the created objects as internal data for `sappp`.
 
 ```{r save_data, eval = FALSE}
-devtools::use_data(dev_times, populations, wasp_attack, environ, internal = TRUE)
+devtools::use_data(dev_times, populations, wasp_attack, environ)
 ```

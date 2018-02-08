@@ -5,3 +5,4 @@
 *.pdf
 inst/doc
 .Rprofile
+vignettes/*.R

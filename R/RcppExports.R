@@ -2,10 +2,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 logit <- function(p) {
-    .Call('_sappp_logit', PACKAGE = 'sappp', p)
+    .Call(`_sappp_logit`, p)
 }
 
 inv_logit <- function(a) {
-    .Call('_sappp_inv_logit', PACKAGE = 'sappp', a)
+    .Call(`_sappp_inv_logit`, a)
 }
 
