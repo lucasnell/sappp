@@ -522,7 +522,7 @@ void SimPatches::dispersal() {
 // reset object and simulate a set number of time periods
 SimSummary SimPatches::simulate(uint max_t) {
     
-    uint rng_seed = static_cast<uint>(R::runif(0, MAX_INT));
+    uint rng_seed = static_cast<uint>(Rcpp::runif(1, 0, MAX_INT)[0]);
     
     sitmo::prng_engine eng(rng_seed);
     // Make sure everything is back to normal and new, unique seeds are set

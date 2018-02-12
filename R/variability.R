@@ -144,14 +144,16 @@ make_sim_obj <- function(
     for (.par in par_programmed) {
         if (is.null(eval(parse(text = .par)))) {
             # For .par = "K", the below paste0 call generates the following string:
-            # "K <- do.call(make_n_values, list(\"K\", 1, 0))"
+            # "K <- do.call(make_n_values, list(\"K\", 1, 1, 0))"
             eval(parse(text = paste0(
                 .par, ' <- ', 'do.call(make_n_values, list("', .par, '", 1, 1, 0))')))
-        } else {
-            # "K <- do.call(make_n_values, c(.par_name = \"K\", .n_pops = .n_pops, K))"
-            eval(parse(text = paste0(
-                .par, ' <- ', 'do.call(make_n_values, c(.par_name = "', .par, 
-                '", .n_pops = .n_pops, .n_patches = .n_patches, ', .par, '))')))
+        } else if (is.list(eval(parse(text = .par)))) {
+            if (is.null(eval(parse(text = paste0(.par, '$.sd_pops'))))) {
+                # "K <- do.call(make_n_values, c(.par_name = \"K\", .n_pops = .n_pops, K))"
+                eval(parse(text = paste0(
+                    .par, ' <- ', 'do.call(make_n_values, c(.par_name = "', .par, 
+                    '", .n_pops = .n_pops, .n_patches = .n_patches, ', .par, '))')))
+            }
         }
     }
     
