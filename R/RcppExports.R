@@ -9,3 +9,16 @@ inv_logit <- function(a) {
     .Call(`_sappp_inv_logit`, a)
 }
 
+#' Create Leslie matrix from aphid info
+#' 
+#' @param instar_days Integer vector of the number of stages (days) per aphid instar.
+#' @param surv_juv Single numeric of daily juvenile survival.
+#' @param surv_adult Numeric vector of aphid adult survivals by stage.
+#' @param repro Numeric vector of aphid reproductive rates by stage.
+#' 
+#' 
+#' @export
+leslie_matrix <- function(instar_days, surv_juv, surv_adult, repro) {
+    .Call(`_sappp_leslie_matrix`, instar_days, surv_juv, surv_adult, repro)
+}
+

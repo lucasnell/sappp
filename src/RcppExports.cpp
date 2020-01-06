@@ -4,7 +4,6 @@
 #include "sappp_types.h"
 #include "../inst/include/sappp.h"
 #include <RcppArmadillo.h>
-#include <sitmo.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -31,12 +30,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// leslie_matrix
+arma::mat leslie_matrix(arma::uvec instar_days, double surv_juv, arma::vec surv_adult, arma::vec repro);
+RcppExport SEXP _sappp_leslie_matrix(SEXP instar_daysSEXP, SEXP surv_juvSEXP, SEXP surv_adultSEXP, SEXP reproSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::uvec >::type instar_days(instar_daysSEXP);
+    Rcpp::traits::input_parameter< double >::type surv_juv(surv_juvSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type surv_adult(surv_adultSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type repro(reproSEXP);
+    rcpp_result_gen = Rcpp::wrap(leslie_matrix(instar_days, surv_juv, surv_adult, repro));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP _rcpp_module_boot_sappp_module();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sappp_logit", (DL_FUNC) &_sappp_logit, 1},
     {"_sappp_inv_logit", (DL_FUNC) &_sappp_inv_logit, 1},
+    {"_sappp_leslie_matrix", (DL_FUNC) &_sappp_leslie_matrix, 4},
     {"_rcpp_module_boot_sappp_module", (DL_FUNC) &_rcpp_module_boot_sappp_module, 0},
     {NULL, NULL, 0}
 };

@@ -16,10 +16,16 @@ arma::vec inv_logit(arma::vec a){
     return out;
 }
 
-
-//
-// Create Leslie matrix from aphid info
-//
+//' Create Leslie matrix from aphid info
+//' 
+//' @param instar_days Integer vector of the number of stages (days) per aphid instar.
+//' @param surv_juv Single numeric of daily juvenile survival.
+//' @param surv_adult Numeric vector of aphid adult survivals by stage.
+//' @param repro Numeric vector of aphid reproductive rates by stage.
+//' 
+//' 
+//' @export
+//[[Rcpp::export]]
 arma::mat leslie_matrix(arma::uvec instar_days, double surv_juv,
                         arma::vec surv_adult, arma::vec repro) {
     uint n_stages = arma::sum(instar_days);
