@@ -2,7 +2,6 @@
 #include <cmath>
 
 using namespace Rcpp;
-using namespace std;
 
 // Logit and inverse logit
 //[[Rcpp::export]]
@@ -28,10 +27,10 @@ arma::vec inv_logit(arma::vec a){
 //[[Rcpp::export]]
 arma::mat leslie_matrix(arma::uvec instar_days, double surv_juv,
                         arma::vec surv_adult, arma::vec repro) {
-    uint n_stages = arma::sum(instar_days);
+    uint32 n_stages = arma::sum(instar_days);
     arma::vec tmp;
     arma::mat LL;
-    uint juv_time = arma::accu(instar_days(arma::span(0, (instar_days.n_elem - 2))));
+    uint32 juv_time = arma::accu(instar_days(arma::span(0, (instar_days.n_elem - 2))));
     // Age-specific survivals
     tmp = arma::vec(n_stages - 1);
     tmp.head(juv_time).fill(surv_juv);

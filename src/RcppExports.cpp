@@ -2,7 +2,6 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include "sappp_types.h"
-#include "../inst/include/sappp.h"
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
 

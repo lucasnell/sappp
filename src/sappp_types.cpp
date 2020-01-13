@@ -1,13 +1,14 @@
 
 #include <RcppArmadillo.h> // arma namespace
-#include <sitmo.h>         // parallel rng
+#include <pcg/pcg_random.hpp> // pcg prng
 #include <vector>          // vector class
 #include <cmath>           // log, exp
 #include <random>          // normal distribution
 #include <cstdint>         // integer types
 #include <algorithm>       // find
 #include "math.h"          // leslie_matrix and leslie_sad
-#include "sappp_types.h"     // all these classes
+#include "sappp_types.h"   // all these classes
+#include "pcg.h"           // rng
 
 
 using namespace Rcpp;
@@ -22,7 +23,7 @@ using namespace std;
 
 /* Overloaded fill function: */
 // For one time, one line, one patch
-void SimSummary::fill(uint t_, uint l_, uint p_, 
+void SimSummary::fill(uint32 t_, uint32 l_, uint32 p_, 
           double aphids_, double parasit_, double mummies_, double wasps_) {
     aphids(t_, l_, p_) = aphids_;
     parasit(t_, l_, p_) = parasit_;
@@ -31,7 +32,7 @@ void SimSummary::fill(uint t_, uint l_, uint p_,
 }
 
 // one time, one patch, ALL lines
-void SimSummary::fill(uint t_, uint p_, 
+void SimSummary::fill(uint32 t_, uint32 p_, 
           arma::rowvec aphids_, arma::rowvec parasit_, 
           arma::rowvec mummies_, arma::rowvec wasps_) {
     aphids.slice(p_).row(t_) = aphids_;
@@ -42,10 +43,10 @@ void SimSummary::fill(uint t_, uint p_,
 
 // one time, ALL patches, ALL lines
 // For the input matrices, rows are patches, columns are lines
-void SimSummary::fill(uint t_,
+void SimSummary::fill(uint32 t_,
           arma::mat aphids_, arma::mat parasit_,
           arma::mat mummies_, arma::mat wasps_) {
-    for (uint i = 0; i < aphids.n_slices; i++) {
+    for (uint32 i = 0; i < aphids.n_slices; i++) {
         aphids.slice(i).row(t_) = aphids_.row(i);
         parasit.slice(i).row(t_) = parasit_.row(i);
         mummies.slice(i).row(t_) = mummies_.row(i);
@@ -55,16 +56,16 @@ void SimSummary::fill(uint t_,
 
 arma::mat SimSummary::flatten() {
     
-    uint n_patches = aphids.n_slices;
-    uint n_lines = aphids.n_cols;
-    uint n_t = aphids.n_rows;
+    uint32 n_patches = aphids.n_slices;
+    uint32 n_lines = aphids.n_cols;
+    uint32 n_t = aphids.n_rows;
     
     arma::mat output(n_lines * n_patches * n_t, 7);
-    uint i = 0;
+    uint32 i = 0;
     
-    for (uint p = 0; p < n_patches; p++) {
-        for (uint l = 0; l < n_lines; l++) {
-            for (uint t = 0; t < n_t; t++) {
+    for (uint32 p = 0; p < n_patches; p++) {
+        for (uint32 l = 0; l < n_lines; l++) {
+            for (uint32 t = 0; t < n_t; t++) {
                 output(i,0) = static_cast<double>(p);
                 output(i,1) = static_cast<double>(l);
                 output(i,2) = static_cast<double>(t);
@@ -83,9 +84,9 @@ arma::mat SimSummary::flatten() {
 
 void SimSummary::show() {
     
-    uint n_t = aphids.n_rows;
-    uint n_pops = aphids.n_cols;
-    uint n_patches = aphids.n_slices;
+    uint32 n_t = aphids.n_rows;
+    uint32 n_pops = aphids.n_cols;
+    uint32 n_patches = aphids.n_slices;
     
     Rcout.precision(4);
     Rcout << std::fixed;
@@ -167,7 +168,7 @@ void WaspAttack::iterate_A(double Y_m, double x) {
 
 
 // Info about one aphid line and wasps that parasitize them
-void AphidWasp::set_seed(uint seed) {
+void AphidWasp::set_seed(uint32 seed) {
     rnd_engine.seed(seed);
 }
 // Harvest a patch (emulate harvesting alfalfa every month)
@@ -238,8 +239,8 @@ void AphidWasp::process_error(double z, double Y_m) {
     
     if (demog_mult == 0 && sigma_x == 0 && sigma_y == 0) return;
     
-    uint living_aphids = X_t.n_elem + mum_days(0);
-    uint total_stages = X_t.n_elem + Y_t.n_elem;
+    uint32 living_aphids = X_t.n_elem + mum_days(0);
+    uint32 total_stages = X_t.n_elem + Y_t.n_elem;
     
     arma::mat Se(total_stages, total_stages, arma::fill::zeros);
     
@@ -266,7 +267,7 @@ void AphidWasp::process_error(double z, double Y_m) {
     
     // Random numbers from distribution N(0,1)
     arma::vec E(non_zero.n_elem);
-    for (uint i = 0; i < non_zero.n_elem; i++) E(i) = rnorm_distr(rnd_engine);
+    for (uint32 i = 0; i < non_zero.n_elem; i++) E(i) = rnorm_distr(rnd_engine);
     
     // Making each element of E have correct variance-covariance matrix
     E = chol_decomp * E;
@@ -285,12 +286,12 @@ void AphidWasp::process_error(double z, double Y_m) {
     // on day t was not allowed to exceed the number in the preceding age class on 
     // day t – 1.
     
-    for (uint i = 1; i < X_t1.n_elem; i++) {
+    for (uint32 i = 1; i < X_t1.n_elem; i++) {
         if (X_t1(i) > X_t(i-1)) X_t1(i) = X_t(i-1);
     }
     // Not going to the end for parasitoids bc you can have more adults than mummies
     // bc adults stay in that stage for >1 days
-    for (uint i = 1; i < (Y_t1.n_elem-1); i++) {
+    for (uint32 i = 1; i < (Y_t1.n_elem-1); i++) {
         if (Y_t1(i) > Y_t(i-1)) Y_t1(i) = Y_t(i-1);
     }
     
@@ -379,16 +380,16 @@ void OnePatch::show() {
 
 
 // Boolean for whether to harvest at time t
-bool OnePatch::do_harvest(uint t) {
+bool OnePatch::do_harvest(uint32 t) {
     if (t < harvest_offset || harvest_period == 0 || t == 0) return false;
-    uint a = t - harvest_offset;
-    uint b = a % harvest_period;
+    uint32 a = t - harvest_offset;
+    uint32 b = a % harvest_period;
     return b == 0;
 };
 
 
 // iterate patch, doing everything but dispersal
-void OnePatch::iterate_patch(uint t) {
+void OnePatch::iterate_patch(uint32 t) {
     
     // Reset, then recalculate patch totals
     z = 0;
@@ -421,9 +422,9 @@ void OnePatch::iterate_patch(uint t) {
 
 
 // Update output summary for one time, one line, one patch
-void OnePatch::update_summary(SimSummary& output, uint t_, uint p_) {
+void OnePatch::update_summary(SimSummary& output, uint32 t_, uint32 p_) {
     
-    for (uint l_ = 0; l_ < pops.size(); l_++) {
+    for (uint32 l_ = 0; l_ < pops.size(); l_++) {
         AphidWasp& aw(pops[l_]);
         output.fill(
             t_, l_, p_,
@@ -437,8 +438,8 @@ void OnePatch::update_summary(SimSummary& output, uint t_, uint p_) {
 }
 
 // Reset and set new seed if you want to do another simulation set
-void OnePatch::reset_patch(uint rng_seed) {
-    sitmo::prng_engine eng(rng_seed);
+void OnePatch::reset_patch(uint32 rng_seed) {
+    pcg32 eng(rng_seed);
     z = 0;
     x = 0;
     Y_m = 0;
@@ -520,11 +521,11 @@ void SimPatches::dispersal() {
 
 
 // reset object and simulate a set number of time periods
-SimSummary SimPatches::simulate(uint max_t) {
+SimSummary SimPatches::simulate(uint32 max_t) {
     
-    uint rng_seed = static_cast<uint>(Rcpp::runif(1, 0, MAX_INT)[0]);
+    uint32 rng_seed = static_cast<uint32>(Rcpp::runif(1, 0, MAX_INT)[0]);
     
-    sitmo::prng_engine eng(rng_seed);
+    pcg32 eng(rng_seed);
     // Make sure everything is back to normal and new, unique seeds are set
     for (OnePatch& p : patches) p.reset_patch(eng());
     // Reset time to zero
@@ -535,7 +536,7 @@ SimSummary SimPatches::simulate(uint max_t) {
     while (t < max_t) {
         for (OnePatch& p : patches) p.iterate_patch(t);
         dispersal();
-        for (uint p_ = 0; p_ < patches.size(); p_++) {
+        for (uint32 p_ = 0; p_ < patches.size(); p_++) {
             OnePatch& p(patches[p_]);
             p.update_summary(output, t, p_);
         }

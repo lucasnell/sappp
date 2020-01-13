@@ -1,12 +1,12 @@
-# ifndef _MATH_H
-# define _MATH_H
+# ifndef __SAPPP_MATH_H
+# define __SAPPP_MATH_H
 
 
 #include <RcppArmadillo.h>
 
 
 using namespace Rcpp;
-using namespace std;
+
 
 arma::vec logit(arma::vec p);
 arma::vec inv_logit(arma::vec a);

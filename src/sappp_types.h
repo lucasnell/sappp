@@ -1,23 +1,22 @@
-# ifndef _SAPPP_TYPES_H
-# define _SAPPP_TYPES_H
+# ifndef __SAPPP_TYPES_H
+# define __SAPPP_TYPES_H
 
 #include <RcppArmadillo.h> // arma namespace
-#include <sitmo.h>         // parallel rng
 #include <vector>          // vector class
 #include <cmath>           // log, exp
 #include <random>          // normal distribution
 #include <cstdint>         // integer types
 #include <algorithm>       // find
+#include <pcg/pcg_random.hpp> // pcg prng
 #include "math.h"          // leslie_matrix and leslie_sad
 
 
 using namespace Rcpp;
-using namespace std;
 
 
 typedef uint_fast8_t uint8;
-typedef uint_fast32_t uint;
-typedef int_fast32_t sint;
+typedef uint_fast32_t uint32;
+typedef int_fast32_t sint32;
 typedef uint_fast64_t uint64;
 typedef int_fast64_t sint64;
 
@@ -41,7 +40,7 @@ public:
     // ------------------
     
     SimSummary() : aphids(), parasit(), mummies(), wasps() {};
-    SimSummary(uint max_t, uint n_lines, uint n_patches) 
+    SimSummary(uint32 max_t, uint32 n_lines, uint32 n_patches) 
         : aphids(max_t, n_lines, n_patches), 
           parasit(max_t, n_lines, n_patches),
           mummies(max_t, n_lines, n_patches), 
@@ -51,15 +50,15 @@ public:
     /* Overloaded fill function: */
     
     // For one time, one line, one patch
-    void fill(uint t_, uint l_, uint p_, 
+    void fill(uint32 t_, uint32 l_, uint32 p_, 
               double aphids_, double parasit_, double mummies_, double wasps_);
     // one time, one patch, ALL lines
-    void fill(uint t_, uint p_, 
+    void fill(uint32 t_, uint32 p_, 
               arma::rowvec aphids_, arma::rowvec parasit_, 
               arma::rowvec mummies_, arma::rowvec wasps_);
     // one time, ALL patches, ALL lines
     // For the input matrices, rows are patches, columns are lines
-    void fill(uint t_,
+    void fill(uint32 t_,
               arma::mat aphids_, arma::mat parasit_,
               arma::mat mummies_, arma::mat wasps_);
     
@@ -89,7 +88,7 @@ struct AphidPop {
     const arma::mat leslie;       // Leslie matrix with survival and reproduction
     const arma::vec X_0;          // initial aphid abundances by stage
     const double K;               // aphid density dependence
-    const uint n_aphid_stages;    // number of aphid stages (i.e., days)
+    const uint32 n_aphid_stages;    // number of aphid stages (i.e., days)
     
     // Changing through time
     arma::vec X_t;                // Aphid density at time t
@@ -120,7 +119,7 @@ struct WaspPop {
     const double K_y;             // parasitized aphid density dependence
     const double s_y;             // parasitoid adult daily survival
     const arma::uvec mum_days;    // number of days per mummy stage (aphid alive & dead)
-    const uint n_wasp_stages;     // number of wasp stages (i.e., days)
+    const uint32 n_wasp_stages;     // number of wasp stages (i.e., days)
     
     // Changing through time
     arma::vec Y_t;                // Wasp density at time t
@@ -207,7 +206,7 @@ struct Environ {
     const double harvest_surv;    // survival rate for living aphids during a harvest
     const double disp_aphid;      // dispersal rate for aphids
     const double disp_wasp;       // dispersal rate for wasps
-    const uint disp_start;        // stage in which dispersal starts in aphids
+    const uint32 disp_start;        // stage in which dispersal starts in aphids
     const double pred_rate;       // predation on aphids and mummies
     
     // Constructor
@@ -215,7 +214,7 @@ struct Environ {
         : harvest_surv(as<double>(par_list["harvest_surv"])),
           disp_aphid(as<double>(par_list["disp_aphid"])),
           disp_wasp(as<double>(par_list["disp_wasp"])),
-          disp_start(as<uint>(par_list["disp_start"])),
+          disp_start(as<uint32>(par_list["disp_start"])),
           pred_rate(as<double>(par_list["pred_rate"])) {};
     
 };
@@ -235,7 +234,7 @@ public:
     // Members:
     // --------
 
-    const string aphid_name;    // unique identifying name for this aphid-wasp combo
+    const std::string aphid_name;    // unique identifying name for this aphid-wasp combo
 
     // --------
     // Constructor:
@@ -247,7 +246,7 @@ public:
           WaspAttack::WaspAttack(par_list), 
           ProcessError::ProcessError(par_list), 
           Environ::Environ(par_list),
-          aphid_name(as<string>(par_list["aphid_name"])),
+          aphid_name(as<std::string>(par_list["aphid_name"])),
           rnorm_distr(0,1),
           rnd_engine() {};
     
@@ -267,14 +266,14 @@ public:
     
     void harvest();
     
-    void set_seed(uint seed);
+    void set_seed(uint32 seed);
 
     // ----------------
     // Private members (for rng):
     // ----------------
 private:
     std::normal_distribution<double> rnorm_distr;
-    sitmo::prng_engine rnd_engine;
+    pcg32 rnd_engine;
 };
 
 
@@ -302,25 +301,25 @@ public:
     // -------
     // Members:
     // -------
-    const uint harvest_period;          // time points between harvests
-    const uint harvest_offset;          // time at which to begin harvests
+    const uint32 harvest_period;          // time points between harvests
+    const uint32 harvest_offset;          // time at which to begin harvests
     double z;                           // Sum of all living aphids at time t
     double x;                           // Sum of non-parasitized aphids at time t
     double Y_m;                         // Total number of adult wasps
-    vector<AphidWasp> pops;             // Vector of aphid-wasp combos
+    std::vector<AphidWasp> pops;             // std::vector of aphid-wasp combos
     
     // -------
     // Constructor:
     // -------
     
-    OnePatch(vector<List> par_L, 
-             const uint& harvest_period_,
-             const uint& harvest_offset_)
+    OnePatch(std::vector<List> par_L, 
+             const uint32& harvest_period_,
+             const uint32& harvest_offset_)
          : harvest_period(harvest_period_),
            harvest_offset(harvest_offset_),
           z(0.0), x(0.0), Y_m(0.0) {
                
-        for (uint i = 0; i < par_L.size(); i++) {
+        for (uint32 i = 0; i < par_L.size(); i++) {
             AphidWasp aw(par_L[i]);
             pops.push_back(aw);
         }
@@ -338,20 +337,20 @@ public:
     double S_y(double K_y);
     
     // Boolean for whether to harvest at time t
-    bool do_harvest(uint t);
+    bool do_harvest(uint32 t);
     
     // Return reference to an AphidWasp object of a given name
-    AphidWasp& find_line(string aphid_name_);
+    AphidWasp& find_line(std::string aphid_name_);
     
     // iterate patch, doing everything but dispersal
-    void iterate_patch(uint t);
+    void iterate_patch(uint32 t);
     
     // retrieve info from a patch (to be done after dispersal on SimPatches)
     // and update a SimSummary object
-    void update_summary(SimSummary& output, uint t_, uint p_);
+    void update_summary(SimSummary& output, uint32 t_, uint32 p_);
 
     // Reset and set new seed if you want to do another simulation set
-    void reset_patch(uint rng_seed);
+    void reset_patch(uint32 rng_seed);
     
 };
 
@@ -386,9 +385,9 @@ public:
     // Members:
     // -------
     
-    vector<string> aphid_names;         // vector of aphid names (same for all patches)
-    vector<OnePatch> patches;           // vector of patch info
-    uint t;                             // current time
+    std::vector<std::string> aphid_names;         // std::vector of aphid names (same for all patches)
+    std::vector<OnePatch> patches;           // std::vector of patch info
+    uint32 t;                             // current time
     
     // -------
     // Constructor:
@@ -397,13 +396,13 @@ public:
     // aphid_names is not nested bc all patches should have the same names 
     // I want them to be allowed to have different parameters, though, to
     // simulate environmental effects
-    SimPatches(vector<vector<List>> par_L,
-               vector<uint> harvest_periods,
-               vector<uint> harvest_offsets)
+    SimPatches(std::vector<std::vector<List>> par_L,
+               std::vector<uint32> harvest_periods,
+               std::vector<uint32> harvest_offsets)
         : aphid_names(0), t(0) {
         
         
-        uint n_patches = harvest_periods.size();
+        uint32 n_patches = harvest_periods.size();
         
         if (n_patches != harvest_offsets.size()) {
             stop("harvest_periods and harvest_offsets should have the same length.");
@@ -411,15 +410,15 @@ public:
         
         // Going through first patch's info to get line names
         // They should be the same among patches
-        uint n_pops = par_L[0].size();
-        for (uint i = 0; i < n_pops; i++) {
-            aphid_names.push_back(as<string>(par_L[0][i]["aphid_name"]));
+        uint32 n_pops = par_L[0].size();
+        for (uint32 i = 0; i < n_pops; i++) {
+            aphid_names.push_back(as<std::string>(par_L[0][i]["aphid_name"]));
         }
         
-        for (uint i = 0; i < n_patches; i++) {
+        for (uint32 i = 0; i < n_patches; i++) {
             OnePatch op(par_L[i], harvest_periods[i], harvest_offsets[i]);
             // Checking that names are the same
-            for (uint j = 0; j < op.pops.size(); j++) {
+            for (uint32 j = 0; j < op.pops.size(); j++) {
                 if (op.pops[j].aphid_name != aphid_names[j]) {
                     stop("All patches' aphid names should be identical.");
                 }
@@ -430,7 +429,7 @@ public:
     
     void dispersal();
     
-    SimSummary simulate(uint max_t);
+    SimSummary simulate(uint32 max_t);
     
 };
 

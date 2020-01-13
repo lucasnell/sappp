@@ -1,5 +1,5 @@
 #include <RcppArmadillo.h> // arma namespace
-#include <sitmo.h>         // parallel rng
+#include <pcg/pcg_random.hpp> // pcg prng
 #include <vector>          // vector class
 #include <cmath>           // log, exp
 #include <random>          // normal distribution
@@ -29,7 +29,7 @@ RCPP_MODULE(sappp_module) {
     ;
     
     class_<SimPatches>("SimPatches")
-        .constructor< vector<vector<List>>,vector<uint>,vector<uint> >()
+        .constructor< vector<vector<List>>,vector<uint32>,vector<uint32> >()
         .field_readonly("aphid_names", &SimPatches::aphid_names, 
             "vector of aphid names (same for all patches)")
         .field("t", &SimPatches::t, "current time")
