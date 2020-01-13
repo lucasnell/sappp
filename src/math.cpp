@@ -1,6 +1,9 @@
 #include <RcppArmadillo.h>
 #include <cmath>
 
+#include "sappp_types.h" // integer types
+
+
 using namespace Rcpp;
 
 // Logit and inverse logit

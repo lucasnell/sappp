@@ -16,14 +16,6 @@
 using namespace Rcpp;
 
 
-typedef uint_fast8_t uint8;
-typedef uint_fast32_t uint32;
-typedef int_fast32_t sint32;
-typedef uint_fast64_t uint64;
-typedef int_fast64_t sint64;
-
-
-
 
 
 // Summarize a simulation's populations for all lines across all times and patches
@@ -236,7 +228,7 @@ public:
     // Members:
     // --------
 
-    const string aphid_name;    // unique identifying name for this aphid-wasp combo
+    const std::string aphid_name;    // unique identifying name for this aphid-wasp combo
 
     // --------
     // Constructor:
@@ -248,7 +240,7 @@ public:
           WaspAttack::WaspAttack(par_list), 
           ProcessError::ProcessError(par_list), 
           Environ::Environ(par_list),
-          aphid_name(as<string>(par_list["aphid_name"])),
+          aphid_name(as<std::string>(par_list["aphid_name"])),
           rnorm_distr(0,1),
           rnd_engine() {};
     
@@ -308,13 +300,13 @@ public:
     double z;                           // Sum of all living aphids at time t
     double x;                           // Sum of non-parasitized aphids at time t
     double Y_m;                         // Total number of adult wasps
-    vector<AphidWasp> pops;             // Vector of aphid-wasp combos
+    std::vector<AphidWasp> pops;             // std::vector of aphid-wasp combos
     
     // -------
     // Constructor:
     // -------
     
-    OnePatch(vector<List> par_L, 
+    OnePatch(std::vector<List> par_L, 
              const uint32& harvest_period_,
              const uint32& harvest_offset_)
          : harvest_period(harvest_period_),
@@ -342,7 +334,7 @@ public:
     bool do_harvest(uint32 t);
     
     // Return reference to an AphidWasp object of a given name
-    AphidWasp& find_line(string aphid_name_);
+    AphidWasp& find_line(std::string aphid_name_);
     
     // iterate patch, doing everything but dispersal
     void iterate_patch(uint32 t);
@@ -387,8 +379,8 @@ public:
     // Members:
     // -------
     
-    vector<string> aphid_names;         // vector of aphid names (same for all patches)
-    vector<OnePatch> patches;           // vector of patch info
+    std::vector<std::string> aphid_names;         // std::vector of aphid names (same for all patches)
+    std::vector<OnePatch> patches;           // std::vector of patch info
     uint32 t;                             // current time
     
     // -------
@@ -398,9 +390,9 @@ public:
     // aphid_names is not nested bc all patches should have the same names 
     // I want them to be allowed to have different parameters, though, to
     // simulate environmental effects
-    SimPatches(vector<vector<List>> par_L,
-               vector<uint32> harvest_periods,
-               vector<uint32> harvest_offsets)
+    SimPatches(std::vector<std::vector<List>> par_L,
+               std::vector<uint32> harvest_periods,
+               std::vector<uint32> harvest_offsets)
         : aphid_names(0), t(0) {
         
         
@@ -414,7 +406,7 @@ public:
         // They should be the same among patches
         uint32 n_pops = par_L[0].size();
         for (uint32 i = 0; i < n_pops; i++) {
-            aphid_names.push_back(as<string>(par_L[0][i]["aphid_name"]));
+            aphid_names.push_back(as<std::string>(par_L[0][i]["aphid_name"]));
         }
         
         for (uint32 i = 0; i < n_patches; i++) {

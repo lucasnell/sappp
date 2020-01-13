@@ -7,12 +7,13 @@
 #include <cstdint>         // integer types
 #include <algorithm>       // find
 #include "math.h"          // leslie_matrix and leslie_sad
-#include "sappp_types.h"   // all these classes
+#include "sappp_types.h"   // integer types
+#include "cpp_classes.h"   // all these classes
 #include "pcg.h"           // rng
 
 
 using namespace Rcpp;
-using namespace std;
+
 
 #define MAX_INT 4294967295
 
@@ -91,22 +92,22 @@ void SimSummary::show() {
     Rcout.precision(4);
     Rcout << std::fixed;
     
-    Rcout << "< Info for SimSummary >" << endl;
-    Rcout << "  time:    " << n_t       << endl;
-    Rcout << "  pops:    " << n_pops    << endl;
-    Rcout << "  patches: " << n_patches << endl;
-    Rcout << endl;
+    Rcout << "< Info for SimSummary >" << std::endl;
+    Rcout << "  time:    " << n_t       << std::endl;
+    Rcout << "  pops:    " << n_pops    << std::endl;
+    Rcout << "  patches: " << n_patches << std::endl;
+    Rcout << std::endl;
     
-    Rcout << "Fields:" << endl;
-    Rcout << "  aphids:  " <<  "density of unparasitized aphids" << endl;
-    Rcout << "  parasit: " <<  "density of parasitized, but alive, aphids" << endl;
-    Rcout << "  mummies: " <<  "density of mummies" << endl;
-    Rcout << "  wasps:   " <<  "density of adult wasps" << endl;
-    Rcout << endl;
+    Rcout << "Fields:" << std::endl;
+    Rcout << "  aphids:  " <<  "density of unparasitized aphids" << std::endl;
+    Rcout << "  parasit: " <<  "density of parasitized, but alive, aphids" << std::endl;
+    Rcout << "  mummies: " <<  "density of mummies" << std::endl;
+    Rcout << "  wasps:   " <<  "density of adult wasps" << std::endl;
+    Rcout << std::endl;
     
-    Rcout << "Each field is a 3D array." << endl;
-    Rcout << "Access elements like... " << endl;
-    Rcout << "<SimSummary obj>$<field name>[<time>,<pop>,<patch>]" << endl;
+    Rcout << "Each field is a 3D array." << std::endl;
+    Rcout << "Access elements like... " << std::endl;
+    Rcout << "<SimSummary obj>$<field name>[<time>,<pop>,<patch>]" << std::endl;
 }
 
 
@@ -191,45 +192,45 @@ void AphidWasp::show() const {
     Rcout.precision(4);
     Rcout << std::fixed;
     
-    Rcout << "< Info for '" << aphid_name << "' aphid-wasp populations>" << endl;
+    Rcout << "< Info for '" << aphid_name << "' aphid-wasp populations>" << std::endl;
     
-    Rcout << "Aphid-line info (static):" << endl;
+    Rcout << "Aphid-line info (static):" << std::endl;
     Rcout << "  - resistances: (";
-    Rcout << attack_surv(0) << ' ' << attack_surv(1) << ')' << endl;
+    Rcout << attack_surv(0) << ' ' << attack_surv(1) << ')' << std::endl;
     
     Rcout << "  - survivals:   (";
     for (unsigned i = 0; i < (N-1); i++) Rcout << survs(i) << ' ';
     if (survs.n_elem > N) Rcout << "... ";
-    Rcout << survs(survs.n_elem-1) << ')' << endl;
+    Rcout << survs(survs.n_elem-1) << ')' << std::endl;
     
     Rcout << "  - fecundities: (";
     for (unsigned i = 0; i < (N-1); i++) Rcout << fecs(i) << ' ';
     if (fecs.n_elem > N) Rcout << "... ";
-    Rcout << fecs(fecs.n_elem-1) << ')' << endl;
+    Rcout << fecs(fecs.n_elem-1) << ')' << std::endl;
     
     
-    Rcout << "Population numbers:" << endl;
+    Rcout << "Population numbers:" << std::endl;
     
     Rcout << "  - aphids[t]:   (";
     for (unsigned i = 0; i < (N-1); i++) Rcout << X_t(i) << ' ';
     if (X_t.n_elem > N) Rcout << "... ";
-    Rcout << X_t(X_t.n_elem-1) << ')' << endl;
+    Rcout << X_t(X_t.n_elem-1) << ')' << std::endl;
     
     Rcout << "  - aphids[t+1]: (";
     for (unsigned i = 0; i < (N-1); i++) Rcout << X_t1(i) << ' ';
     if (X_t1.n_elem > N) Rcout << "... ";
-    Rcout << X_t1(X_t1.n_elem-1) << ')' << endl;
+    Rcout << X_t1(X_t1.n_elem-1) << ')' << std::endl;
     
     N = std::min(static_cast<arma::uword>(6), Y_t.n_elem);
     Rcout << "  - wasps[t]:    (";
     for (unsigned i = 0; i < (N-1); i++) Rcout << Y_t(i) << ' ';
     if (Y_t.n_elem > N) Rcout << "... ";
-    Rcout << Y_t(Y_t.n_elem-1) << ')' << endl;
+    Rcout << Y_t(Y_t.n_elem-1) << ')' << std::endl;
     
     Rcout << "  - wasps[t+1]:  (";
     for (unsigned i = 0; i < (N-1); i++) Rcout << Y_t1(i) << ' ';
     if (Y_t.n_elem > N) Rcout << "... ";
-    Rcout << Y_t1(Y_t1.n_elem-1) << ')' << endl;
+    Rcout << Y_t1(Y_t1.n_elem-1) << ')' << std::endl;
     
     return;
 }
@@ -369,13 +370,13 @@ double OnePatch::S_y(double K_y) {
 
 
 void OnePatch::show() {
-    Rcout << "< Info for one patch w " << pops.size() << " aphid-wasp combos >" << endl;
-    // Rcout << "harvest period: " << harvest_period << endl;
-    // Rcout << "harvest offset: " << harvest_offset << endl;
-    Rcout << "Current numbers:" << endl;
-    Rcout << "  - non-parasitized aphids: " << x << endl;
-    Rcout << "  - living aphids:          " << z << endl;
-    Rcout << "  - adult wasps:            " << Y_m << endl;
+    Rcout << "< Info for one patch w " << pops.size() << " aphid-wasp combos >" << std::endl;
+    // Rcout << "harvest period: " << harvest_period << std::endl;
+    // Rcout << "harvest offset: " << harvest_offset << std::endl;
+    Rcout << "Current numbers:" << std::endl;
+    Rcout << "  - non-parasitized aphids: " << x << std::endl;
+    Rcout << "  - living aphids:          " << z << std::endl;
+    Rcout << "  - adult wasps:            " << Y_m << std::endl;
 }
 
 
@@ -455,7 +456,7 @@ void OnePatch::reset_patch(uint32 rng_seed) {
 
 
 // Return reference to an AphidWasp object of a given name
-AphidWasp& OnePatch::find_line(string aphid_name_) {
+AphidWasp& OnePatch::find_line(std::string aphid_name_) {
     for (AphidWasp& aw : pops) {
         if (aw.aphid_name == aphid_name_) return aw;
     }
@@ -482,7 +483,7 @@ AphidWasp& OnePatch::find_line(string aphid_name_) {
 // Dispersal among patches
 void SimPatches::dispersal() {
     // Do this individually for each aphid-wasp combo
-    for (const string& an : aphid_names) {
+    for (const std::string& an : aphid_names) {
         // Calculate the mean number of aphids (for each stage) and 
         // wasps (just adults) across patches
         arma::vec mean_aphids = arma::zeros<arma::vec>(99); // 99 is more than enough

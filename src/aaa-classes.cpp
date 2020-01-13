@@ -5,10 +5,10 @@
 #include <random>          // normal distribution
 #include <cstdint>         // integer types
 
-#include "sappp_types.h"
+#include "sappp_types.h"   // integer types
+#include "cpp_classes.h"   // all these classes
 
 using namespace Rcpp;
-using namespace std;
 
 
 RCPP_EXPOSED_CLASS(SimSummary)
@@ -29,7 +29,7 @@ RCPP_MODULE(sappp_module) {
     ;
     
     class_<SimPatches>("SimPatches")
-        .constructor< vector<vector<List>>,vector<uint32>,vector<uint32> >()
+        .constructor< std::vector<std::vector<List>>,std::vector<uint32>,std::vector<uint32> >()
         .field_readonly("aphid_names", &SimPatches::aphid_names, 
             "vector of aphid names (same for all patches)")
         .field("t", &SimPatches::t, "current time")
